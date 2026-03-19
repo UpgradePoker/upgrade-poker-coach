@@ -10,91 +10,78 @@ body{font-family:system-ui,sans-serif;background:#000;color:#fff;min-height:100v
 #gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 #app{display:none;min-height:100vh;flex-direction:column}
 .card{background:#0a0a0a;border:1px solid #1a9a9a;border-radius:16px;padding:28px;width:100%;max-width:420px}
-.teal{color:#1a9a9a}
-.muted{color:#666}
-.btn{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.btn{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
 .btn:disabled{background:#222;color:#555;cursor:default}
-.btn-outline{background:transparent;border:1px solid #1a9a9a;color:#1a9a9a;border-radius:10px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600}
-.inp{width:100%;padding:10px 12px;border-radius:8px;background:#111;border:1px solid #333;color:#fff;font-size:13px;outline:none;font-family:monospace}
+.btn-sm{background:transparent;border:1px solid #1a9a9a;color:#1a9a9a;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit}
+.inp{width:100%;padding:10px 12px;border-radius:8px;background:#111;border:1px solid #333;color:#fff;font-size:13px;outline:none;font-family:inherit}
 .inp:focus{border-color:#1a9a9a}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .seg{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid #333}
-.seg button{padding:8px 16px;border:none;background:transparent;color:#666;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap;font-family:inherit}
+.seg button{padding:8px 16px;border:none;background:transparent;color:#555;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap;font-family:inherit;transition:all 0.15s}
 .seg button.active{background:#1a9a9a;color:#fff;font-weight:700}
-.cp-row{padding:14px 18px;border-bottom:1px solid #1a1a1a}
-.cp-label{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px}
-.stat-chip{flex:1;min-width:60px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a}
-.opt-btn{text-align:left;padding:11px 13px;border-radius:10px;background:#111;border:1px solid #222;color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;line-height:1.4;width:100%}
+.cp-row{padding:14px 18px;border-bottom:1px solid #111}
+.cp-label{font-size:10px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px}
+.opt-btn{text-align:left;padding:11px 13px;border-radius:10px;background:#111;border:1px solid #1e1e1e;color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;line-height:1.4;width:100%;transition:all 0.15s}
+.opt-btn:hover{border-color:#333}
 .opt-btn.correct{background:rgba(74,222,128,0.1);border-color:#4ade80;color:#4ade80}
 .opt-btn.wrong{background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171}
-.opt-btn.dimmed{color:#333;border-color:#1a1a1a}
-select{padding:8px 10px;border-radius:8px;background:#111;border:1px solid #333;color:#aaa;font-size:12px;cursor:pointer;outline:none}
+.opt-btn.dimmed{color:#333;border-color:#111}
+select{padding:8px 10px;border-radius:8px;background:#111;border:1px solid #333;color:#aaa;font-size:12px;cursor:pointer;outline:none;font-family:inherit}
 </style>
 </head>
 <body>
 
-<!-- Gate -->
 <div id="gate">
-<div class="card">
-  <div style="text-align:center;margin-bottom:20px">
-    <svg viewBox="0 0 100 110" width="60" height="66" xmlns="http://www.w3.org/2000/svg">
-      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d6e6e"/><stop offset="100%" stop-color="#1a9a9a"/></linearGradient></defs>
-      <path d="M50 5C50 5 5 40 5 62c0 16 13 26 27 22-4 6-10 14-14 21h64c-4-7-10-15-14-21 14 4 27-6 27-22C95 40 50 5 50 5z" fill="url(#g1)"/>
-      <path d="M50 48l-6 10h3v12h6V58h3z" fill="#1a9a9a" opacity="0.9"/>
-    </svg>
-    <div style="font-size:20px;font-weight:700;color:#1a9a9a;margin-top:8px">Upgrade Poker Coach</div>
-    <div style="font-size:12px;color:#555;margin-top:4px">by <a href="https://upgradepoker.com" style="color:#1a9a9a;text-decoration:none">upgradepoker.com</a></div>
+  <div class="card">
+    <div style="text-align:center;margin-bottom:20px">
+      <svg viewBox="0 0 100 110" width="60" height="66" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d6e6e"/><stop offset="100%" stop-color="#1a9a9a"/></linearGradient></defs>
+        <path d="M50 5C50 5 5 40 5 62c0 16 13 26 27 22-4 6-10 14-14 21h64c-4-7-10-15-14-21 14 4 27-6 27-22C95 40 50 5 50 5z" fill="url(#g1)"/>
+        <path d="M50 48l-6 10h3v12h6V58h3z" fill="#1a9a9a" opacity="0.9"/>
+      </svg>
+      <div style="font-size:20px;font-weight:700;color:#1a9a9a;margin-top:8px">Upgrade Poker Coach</div>
+      <div style="font-size:12px;color:#444;margin-top:4px">by <a href="https://upgradepoker.com" style="color:#1a9a9a;text-decoration:none">upgradepoker.com</a></div>
+    </div>
+    <label style="font-size:11px;color:#555;display:block;margin-bottom:6px">Anthropic API Key</label>
+    <input class="inp" type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" style="margin-bottom:8px"/>
+    <p style="font-size:11px;color:#333;margin-bottom:14px;line-height:1.5">Stored only in your browser. <a href="https://console.anthropic.com" target="_blank" style="color:#1a9a9a">Get a free key at console.anthropic.com</a></p>
+    <div id="gate-err" style="font-size:12px;color:#f87171;margin-bottom:10px;display:none"></div>
+    <button class="btn" onclick="startApp()">Start Training</button>
+    <p style="text-align:center;font-size:10px;color:#222;margin-top:16px">&copy; Upgrade Poker &middot; Powered by Claude AI</p>
   </div>
-  <label style="font-size:11px;color:#666;display:block;margin-bottom:6px">Anthropic API Key</label>
-  <input class="inp" type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off"/>
-  <p style="font-size:11px;color:#333;margin:8px 0 14px;line-height:1.5">Stored only in your browser. <a href="https://console.anthropic.com" target="_blank" style="color:#1a9a9a">Get a free key at console.anthropic.com</a></p>
-  <div id="gate-err" style="font-size:12px;color:#f87171;margin-bottom:10px;display:none"></div>
-  <button class="btn" onclick="startApp()">Start Training</button>
-  <p style="text-align:center;font-size:10px;color:#222;margin-top:16px">&copy; Upgrade Poker &middot; Powered by Claude AI</p>
-</div>
 </div>
 
-<!-- App -->
 <div id="app">
-
-  <!-- Top bar -->
-  <div style="background:#0a0a0a;border-bottom:1px solid #1a1a1a;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+  <div style="background:#0a0a0a;border-bottom:1px solid #111;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
     <div style="display:flex;align-items:center;gap:10px">
       <div id="avatar" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff"></div>
-      <div>
-        <div id="uname" style="font-size:13px;font-weight:700"></div>
-        <div style="font-size:10px;color:#555">Upgrade Poker Coach</div>
-      </div>
+      <div><div id="uname" style="font-size:13px;font-weight:700"></div><div style="font-size:10px;color:#444">Upgrade Poker Coach</div></div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-      <div id="score-badge" style="background:rgba(26,154,154,0.1);border:1px solid #1a9a9a44;border-radius:14px;padding:3px 10px;font-size:11px;color:#1a9a9a;font-weight:600"></div>
-      <button class="btn-outline" onclick="showAnalytics()">Stats</button>
-      <button class="btn-outline" onclick="showHandAnalyzer()">Analyze Hand</button>
-      <button style="background:transparent;border:1px solid #222;border-radius:14px;padding:3px 10px;font-size:11px;color:#555;cursor:pointer" onclick="switchUser()">Switch</button>
+      <div id="score-badge" style="background:rgba(26,154,154,0.1);border:1px solid #1a9a9a33;border-radius:14px;padding:3px 10px;font-size:11px;color:#1a9a9a;font-weight:600"></div>
+      <button class="btn-sm" onclick="showAnalytics()">Stats</button>
+      <button class="btn-sm" onclick="showHandAnalyzer()">Analyze Hand</button>
+      <button onclick="switchUser()" style="background:transparent;border:1px solid #222;border-radius:14px;padding:3px 10px;font-size:11px;color:#444;cursor:pointer;font-family:inherit">Switch</button>
     </div>
   </div>
 
-  <!-- Main tabs -->
-  <div style="display:flex;background:#0a0a0a;border-bottom:1px solid #1a1a1a">
+  <div style="display:flex;background:#0a0a0a;border-bottom:1px solid #111">
     <button id="tab-train" onclick="setTab('train')" style="flex:1;padding:11px;border:none;background:transparent;color:#1a9a9a;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2px solid #1a9a9a;font-family:inherit">Training</button>
-    <button id="tab-tools" onclick="setTab('tools')" style="flex:1;padding:11px;border:none;background:transparent;color:#555;font-size:13px;font-weight:400;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">Tools</button>
+    <button id="tab-tools" onclick="setTab('tools')" style="flex:1;padding:11px;border:none;background:transparent;color:#444;font-size:13px;font-weight:400;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">Tools</button>
   </div>
 
-  <!-- Training panel -->
   <div id="panel-train">
-    <!-- Controls -->
-    <div style="background:#0a0a0a;border-bottom:2px solid #1a1a1a">
+    <div style="background:#0a0a0a;border-bottom:2px solid #111">
       <div class="cp-row">
         <div class="cp-label">Game</div>
-        <div class="row">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <div class="seg">
             <button id="seg-holdem" class="active" onclick="setVariant('holdem')">Hold'em</button>
             <button id="seg-omaha" onclick="setVariant('omaha')">Omaha</button>
             <button id="seg-mixed" onclick="setVariant('mixed')">Mixed</button>
           </div>
           <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-            <span style="font-size:12px;color:#666" id="po-label">Pot Odds</span>
-            <div onclick="togglePotOdds()" id="po-toggle" style="width:40px;height:22px;border-radius:11px;background:#222;border:1px solid #333;cursor:pointer;position:relative;transition:background 0.2s">
+            <span id="po-label" style="font-size:12px;color:#444">Pot Odds</span>
+            <div onclick="togglePotOdds()" id="po-toggle" style="width:40px;height:22px;border-radius:11px;background:#222;border:1px solid #333;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0">
               <div id="po-thumb" style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
             </div>
           </div>
@@ -102,38 +89,36 @@ select{padding:8px 10px;border-radius:8px;background:#111;border:1px solid #333;
       </div>
       <div class="cp-row">
         <div class="cp-label">Format</div>
-        <div class="row">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <div class="seg">
             <button id="seg-cash" class="active" onclick="setFormat('cash')">Cash</button>
             <button id="seg-tourney" onclick="setFormat('tournament')">Tournament</button>
           </div>
           <span id="tourney-note" style="font-size:11px;color:#1a9a9a;display:none">ICM &middot; Bubble pressure</span>
           <div style="margin-left:auto">
-            <button class="btn-outline" id="session-btn" onclick="startSession()">Session (10)</button>
+            <button class="btn-sm" id="session-btn" onclick="startSession()">Session (10)</button>
           </div>
         </div>
       </div>
       <div class="cp-row">
         <div class="cp-label">Focus</div>
-        <div class="row">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button id="cat-preflop" onclick="setCat('preflop')" style="padding:8px 18px;border-radius:9px;border:1px solid #1a9a9a;background:#1a9a9a;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Preflop</button>
-          <button id="cat-postflop" onclick="setCat('postflop')" style="padding:8px 18px;border-radius:9px;border:1px solid #333;background:transparent;color:#666;font-size:12px;cursor:pointer;font-family:inherit">Postflop</button>
-          <button id="cat-bluffing" onclick="setCat('bluffing')" style="padding:8px 18px;border-radius:9px;border:1px solid #333;background:transparent;color:#666;font-size:12px;cursor:pointer;font-family:inherit">Bluffing</button>
+          <button id="cat-postflop" onclick="setCat('postflop')" style="padding:8px 18px;border-radius:9px;border:1px solid #333;background:transparent;color:#555;font-size:12px;cursor:pointer;font-family:inherit">Postflop</button>
+          <button id="cat-bluffing" onclick="setCat('bluffing')" style="padding:8px 18px;border-radius:9px;border:1px solid #333;background:transparent;color:#555;font-size:12px;cursor:pointer;font-family:inherit">Bluffing</button>
         </div>
       </div>
       <div class="cp-row" style="border-bottom:none">
         <div class="cp-label">Settings</div>
-        <div class="row">
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
           <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px">
-            <span style="font-size:10px;color:#555">Difficulty</span>
+            <span style="font-size:10px;color:#444">Difficulty</span>
             <select id="sel-diff" onchange="state.difficulty=this.value">
-              <option>Beginner</option>
-              <option selected>Intermediate</option>
-              <option>Advanced</option>
+              <option>Beginner</option><option selected>Intermediate</option><option>Advanced</option>
             </select>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px">
-            <span style="font-size:10px;color:#555">Villain Type</span>
+            <span style="font-size:10px;color:#444">Villain Type</span>
             <select id="sel-villain" onchange="state.villain=this.value">
               <option>Nit</option><option selected>TAG</option><option>LAG</option>
               <option>Fish</option><option>Calling Station</option><option>Maniac</option><option>GTO Reg</option>
@@ -142,37 +127,32 @@ select{padding:8px 10px;border-radius:8px;background:#111;border:1px solid #333;
         </div>
       </div>
     </div>
-
-    <!-- Quiz area -->
     <div id="quiz-area" style="padding:16px;max-width:700px;margin:0 auto;width:100%"></div>
   </div>
 
-  <!-- Tools panel -->
   <div id="panel-tools" style="display:none;flex:1;flex-direction:column">
-    <div style="display:flex;gap:4px;padding:10px 14px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;overflow-x:auto">
+    <div style="display:flex;gap:4px;padding:10px 14px;background:#0a0a0a;border-bottom:1px solid #111;overflow-x:auto">
       <button onclick="setTool('equity')" id="tool-equity" style="padding:6px 12px;border-radius:8px;border:none;background:#1a9a9a;color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Equity Calc</button>
-      <button onclick="setTool('bankroll')" id="tool-bankroll" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#666;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Bankroll</button>
-      <button onclick="setTool('handlog')" id="tool-handlog" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#666;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Hand Log</button>
+      <button onclick="setTool('bankroll')" id="tool-bankroll" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#555;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Bankroll</button>
+      <button onclick="setTool('handlog')" id="tool-handlog" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#555;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Hand Log</button>
     </div>
     <div id="tool-area" style="padding:18px 16px;max-width:680px;margin:0 auto;width:100%"></div>
   </div>
-
 </div>
 
-<!-- Overlay -->
-<div id="overlay" onclick="closeOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:100;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
-  <div id="overlay-content" onclick="event.stopPropagation()" style="background:#0a0a0a;border:1px solid #1a9a9a44;border-radius:16px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;padding:22px"></div>
+<div id="overlay" onclick="closeOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
+  <div id="overlay-content" onclick="event.stopPropagation()" style="background:#0a0a0a;border:1px solid #1a9a9a33;border-radius:16px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;padding:22px"></div>
 </div>
 
 <script>
 // ── State ─────────────────────────────────────────────────────────
 const state = {
-  variant: 'holdem', format: 'cash', cat: 'preflop',
-  difficulty: 'Intermediate', villain: 'TAG',
-  showPotOdds: false, sessionMode: false, sessionCount: 0,
-  user: null, users: [],
-  quiz: null, selected: null, loading: false, streak: 0,
-  hintUsed: false, hint: null
+  variant:'holdem', format:'cash', cat:'preflop',
+  difficulty:'Intermediate', villain:'TAG',
+  showPotOdds:false, sessionMode:false, sessionCount:0, sessionAnswers:[],
+  user:null, users:[],
+  quiz:null, selected:null, loading:false, streak:0,
+  hintUsed:false, hint:null
 };
 
 const RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
@@ -186,10 +166,10 @@ const S = {
   get: k => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):null; } catch { return null; } },
   set: (k,v) => { try { localStorage.setItem(k,JSON.stringify(v)); } catch {} }
 };
-function loadUsers() { return S.get('upc:users') || []; }
-function saveUsers(u) { S.set('upc:users', u); }
-function loadProfile(id) { return S.get('upc:p:'+id); }
-function saveProfile(id,d) { S.set('upc:p:'+id, d); }
+const loadUsers   = () => S.get('upc:users') || [];
+const saveUsers   = u  => S.set('upc:users', u);
+const loadProfile = id => S.get('upc:p:'+id);
+const saveProfile = (id,d) => S.set('upc:p:'+id, d);
 function emptyProfile(name) {
   return { name, sessions:0, totalQ:0, totalCorrect:0,
     cats:{preflop:{q:0,c:0},postflop:{q:0,c:0},bluffing:{q:0,c:0}},
@@ -200,23 +180,23 @@ function emptyProfile(name) {
 function getKey() { return localStorage.getItem('upc_api_key') || ''; }
 async function callClaude(sys, msg, maxTokens) {
   const key = getKey();
-  if (!key) throw new Error('No API key. Please refresh and enter your key.');
+  if (!key) throw new Error('No API key. Please refresh and re-enter your key.');
   const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
     },
-    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens||1200, system:sys, messages:[{role:'user',content:msg}] })
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens||1200,system:sys,messages:[{role:'user',content:msg}]})
   });
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message + ' (' + data.error.type + ')');
+  if (data.error) throw new Error(data.error.message+' ('+data.error.type+')');
   return data.content.map(i=>i.text||'').join('');
 }
 
-// ── Gate ─────────────────────────────────────────────────────────
+// ── Gate ──────────────────────────────────────────────────────────
 function startApp() {
   const key = (document.getElementById('api-key').value||'').trim();
   const err = document.getElementById('gate-err');
@@ -224,31 +204,22 @@ function startApp() {
   if (!key) { err.textContent='Please enter your API key.'; err.style.display='block'; return; }
   if (!key.startsWith('sk-ant-')) { err.textContent='Invalid key — should start with sk-ant-'; err.style.display='block'; return; }
   localStorage.setItem('upc_api_key', key);
+  launchApp();
+}
+function launchApp() {
   document.getElementById('gate').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  initApp();
+  state.users = loadUsers();
+  showUserSelect();
 }
 window.addEventListener('DOMContentLoaded', () => {
   const saved = localStorage.getItem('upc_api_key');
-  if (saved && saved.startsWith('sk-ant-')) {
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    initApp();
-  }
+  if (saved && saved.startsWith('sk-ant-')) { launchApp(); }
   const inp = document.getElementById('api-key');
   if (inp) inp.addEventListener('keydown', e => { if(e.key==='Enter') startApp(); });
 });
 
-// ── App init ──────────────────────────────────────────────────────
-function initApp() {
-  state.users = loadUsers();
-  if (state.users.length === 0) {
-    showUserSelect();
-  } else {
-    showUserSelect();
-  }
-}
-
+// ── User management ───────────────────────────────────────────────
 function showUserSelect() {
   const users = state.users;
   let html = `<div style="text-align:center;margin-bottom:24px">
@@ -258,19 +229,18 @@ function showUserSelect() {
       <path d="M50 48l-6 10h3v12h6V58h3z" fill="#1a9a9a" opacity="0.9"/>
     </svg>
     <div style="font-size:20px;font-weight:700;color:#1a9a9a;margin-top:8px">Upgrade Poker Coach</div>
-    <div style="font-size:12px;color:#555;margin-top:4px">Select your profile</div>
+    <div style="font-size:12px;color:#444;margin-top:4px">Select your profile</div>
   </div>`;
   users.forEach(u => {
     const pct = u.totalQ ? Math.round((u.totalCorrect/u.totalQ)*100) : 0;
-    html += `<button onclick="selectUser('${u.id}')" style="width:100%;padding:12px 14px;border-radius:10px;background:#111;border:1px solid #222;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:inherit">
+    html += `<button onclick="selectUser('${u.id}')" style="width:100%;padding:12px 14px;border-radius:10px;background:#111;border:1px solid #1e1e1e;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:inherit;transition:border-color 0.15s">
       <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${u.name[0].toUpperCase()}</div>
-      <div style="text-align:left;flex:1"><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:11px;color:#555">${u.totalQ||0} questions &middot; ${pct}%</div></div>
+      <div style="text-align:left;flex:1"><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:11px;color:#444">${u.totalQ||0} questions &middot; ${pct}%</div></div>
       <div style="color:#333;font-size:16px">&#8250;</div>
     </button>`;
   });
-  html += `<button onclick="showAddUser()" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">+ Add New Player</button>
-  <div style="text-align:center;margin-top:16px;font-size:10px;color:#222">&copy; Upgrade Poker &middot; Powered by Claude AI</div>`;
-
+  html += `<button onclick="showAddUser()" class="btn" style="margin-top:4px">+ Add New Player</button>
+  <div style="text-align:center;margin-top:16px;font-size:10px;color:#1e1e1e">&copy; Upgrade Poker &middot; Powered by Claude AI</div>`;
   const oc = document.getElementById('overlay-content');
   oc.innerHTML = html;
   document.getElementById('overlay').style.display = 'flex';
@@ -283,9 +253,9 @@ function showAddUser() {
     <div id="name-err" style="font-size:12px;color:#f87171;margin-bottom:8px;display:none"></div>
     <div style="display:flex;gap:8px">
       <button onclick="addUser()" class="btn">Create Profile</button>
-      <button onclick="showUserSelect()" style="padding:10px 14px;border-radius:8px;background:transparent;border:1px solid #333;color:#666;cursor:pointer;font-family:inherit">Back</button>
+      <button onclick="showUserSelect()" style="padding:10px 14px;border-radius:8px;background:transparent;border:1px solid #333;color:#555;cursor:pointer;font-family:inherit">Back</button>
     </div>`;
-  setTimeout(()=>document.getElementById('new-name').focus(),100);
+  setTimeout(()=>{ const n=document.getElementById('new-name'); if(n) n.focus(); },100);
 }
 
 function addUser() {
@@ -317,8 +287,7 @@ function selectUser(id) {
 function switchUser() { showUserSelect(); }
 
 function updateTopBar() {
-  const p = state.user;
-  if (!p) return;
+  const p = state.user; if (!p) return;
   document.getElementById('avatar').textContent = p.name[0].toUpperCase();
   document.getElementById('uname').textContent = p.name;
   const tQ=p.totalQ||0, tC=p.totalCorrect||0;
@@ -328,7 +297,7 @@ function updateTopBar() {
 }
 
 function persistUser() {
-  const p = state.user;
+  const p = state.user; if (!p) return;
   saveProfile(p.id, p);
   const nu = state.users.map(u=>u.id===p.id?{...u,totalQ:p.totalQ,totalCorrect:p.totalCorrect}:u);
   state.users = nu;
@@ -339,75 +308,66 @@ function persistUser() {
 // ── Controls ──────────────────────────────────────────────────────
 function setVariant(v) {
   state.variant = v;
-  ['holdem','omaha','mixed'].forEach(x => {
-    const el = document.getElementById('seg-'+x);
-    if (el) el.className = x===v ? 'active' : '';
-  });
+  ['holdem','omaha','mixed'].forEach(x => { const el=document.getElementById('seg-'+x); if(el) el.className=x===v?'active':''; });
   fetchQuiz();
 }
 function setFormat(f) {
   state.format = f;
-  ['cash','tourney'].forEach(x => {
-    const el = document.getElementById('seg-'+x);
-    if (el) el.className = (x==='cash'&&f==='cash')||(x==='tourney'&&f==='tournament') ? 'active' : '';
-  });
+  document.getElementById('seg-cash').className = f==='cash'?'active':'';
+  document.getElementById('seg-tourney').className = f==='tournament'?'active':'';
   const note = document.getElementById('tourney-note');
-  if (note) note.style.display = f==='tournament' ? 'inline' : 'none';
+  if(note) note.style.display = f==='tournament'?'inline':'none';
   fetchQuiz();
 }
 function setCat(c) {
   state.cat = c;
   ['preflop','postflop','bluffing'].forEach(x => {
-    const el = document.getElementById('cat-'+x);
-    if (!el) return;
-    if (x===c) { el.style.background='#1a9a9a'; el.style.borderColor='#1a9a9a'; el.style.color='#fff'; el.style.fontWeight='700'; }
-    else { el.style.background='transparent'; el.style.borderColor='#333'; el.style.color='#666'; el.style.fontWeight='400'; }
+    const el = document.getElementById('cat-'+x); if(!el) return;
+    if(x===c){ el.style.background='#1a9a9a'; el.style.borderColor='#1a9a9a'; el.style.color='#fff'; el.style.fontWeight='700'; }
+    else { el.style.background='transparent'; el.style.borderColor='#333'; el.style.color='#555'; el.style.fontWeight='400'; }
   });
   fetchQuiz();
 }
 function togglePotOdds() {
   state.showPotOdds = !state.showPotOdds;
-  const t = document.getElementById('po-toggle');
-  const th = document.getElementById('po-thumb');
-  const lb = document.getElementById('po-label');
-  if (t) t.style.background = state.showPotOdds ? '#1a9a9a' : '#222';
-  if (th) th.style.left = state.showPotOdds ? '22px' : '2px';
-  if (lb) lb.style.color = state.showPotOdds ? '#1a9a9a' : '#666';
+  const t=document.getElementById('po-toggle'), th=document.getElementById('po-thumb'), lb=document.getElementById('po-label');
+  if(t) t.style.background = state.showPotOdds?'#1a9a9a':'#222';
+  if(th) th.style.left = state.showPotOdds?'22px':'2px';
+  if(lb) lb.style.color = state.showPotOdds?'#1a9a9a':'#444';
   renderQuiz();
 }
 function startSession() {
-  state.sessionMode = true;
-  state.sessionCount = 0;
-  state.sessionAnswers = [];
-  document.getElementById('session-btn').textContent = '0/10';
+  state.sessionMode=true; state.sessionCount=0; state.sessionAnswers=[];
+  const btn=document.getElementById('session-btn'); if(btn) btn.textContent='0/10';
   fetchQuiz();
 }
 function setTab(t) {
-  document.getElementById('panel-train').style.display = t==='train' ? 'block' : 'none';
-  document.getElementById('panel-tools').style.display = t==='tools' ? 'flex' : 'none';
-  document.getElementById('tab-train').style.color = t==='train' ? '#1a9a9a' : '#555';
-  document.getElementById('tab-train').style.fontWeight = t==='train' ? '700' : '400';
-  document.getElementById('tab-train').style.borderBottom = t==='train' ? '2px solid #1a9a9a' : '2px solid transparent';
-  document.getElementById('tab-tools').style.color = t==='tools' ? '#1a9a9a' : '#555';
-  document.getElementById('tab-tools').style.fontWeight = t==='tools' ? '700' : '400';
-  document.getElementById('tab-tools').style.borderBottom = t==='tools' ? '2px solid #1a9a9a' : '2px solid transparent';
-  if (t==='tools') setTool('equity');
+  document.getElementById('panel-train').style.display = t==='train'?'block':'none';
+  document.getElementById('panel-tools').style.display = t==='tools'?'flex':'none';
+  ['train','tools'].forEach(x => {
+    const el=document.getElementById('tab-'+x); if(!el) return;
+    el.style.color = x===t?'#1a9a9a':'#444';
+    el.style.fontWeight = x===t?'700':'400';
+    el.style.borderBottom = x===t?'2px solid #1a9a9a':'2px solid transparent';
+  });
+  if(t==='tools') setTool('equity');
 }
 function setTool(t) {
   ['equity','bankroll','handlog'].forEach(x => {
-    const el = document.getElementById('tool-'+x);
-    if (el) { el.style.background = x===t ? '#1a9a9a' : 'rgba(255,255,255,0.05)'; el.style.color = x===t ? '#fff' : '#666'; }
+    const el=document.getElementById('tool-'+x); if(!el) return;
+    el.style.background = x===t?'#1a9a9a':'rgba(255,255,255,0.05)';
+    el.style.color = x===t?'#fff':'#555';
   });
-  const area = document.getElementById('tool-area');
-  if (t==='equity') area.innerHTML = renderEquityCalc();
-  if (t==='bankroll') area.innerHTML = renderBankroll();
-  if (t==='handlog') area.innerHTML = renderHandLog();
+  const area=document.getElementById('tool-area'); if(!area) return;
+  if(t==='equity') area.innerHTML=renderEquityCalc();
+  if(t==='bankroll') area.innerHTML=renderBankroll();
+  if(t==='handlog') area.innerHTML=renderHandLog();
 }
 
 // ── Deck ──────────────────────────────────────────────────────────
 function shuffleDeck() {
   const d = RANKS.flatMap(r=>SUITS.map(s=>({rank:r,suit:s})));
-  for (let i=d.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
+  for(let i=d.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
   return d;
 }
 function classifyHand(c1,c2) {
@@ -415,244 +375,233 @@ function classifyHand(c1,c2) {
   const isPair=c1.rank===c2.rank,isSuited=c1.suit===c2.suit;
   const hi=Math.max(r1,r2),lo=Math.min(r1,r2),gap=hi-lo;
   if(isPair&&hi>=10) return 'premium pair JJ-AA';
-  if(isPair&&hi>=7) return 'medium pair 88-TT';
-  if(isPair) return 'small pair 22-77';
+  if(isPair&&hi>=7)  return 'medium pair 88-TT';
+  if(isPair)         return 'small pair 22-77';
   if(hi>=12&&lo>=11) return 'premium broadway';
   if(hi===12&&lo>=9&&isSuited) return 'strong suited ace';
   if(hi===12&&lo>=9) return 'offsuit big ace';
-  if(hi===12) return 'weak ace - often fold';
+  if(hi===12)        return 'weak ace';
   if(gap<=1&&isSuited&&hi>=7) return 'suited connector';
   if(gap<=3&&isSuited) return 'suited gapper';
-  if(hi>=10&&lo>=9) return 'offsuit broadway';
-  if(hi<=5) return 'trash - fold is correct';
+  if(hi>=10&&lo>=9)  return 'offsuit broadway';
   return 'marginal hand';
 }
-
-// Hands that are always obvious folds — skip them and redeal
 function isUsableHand(c1,c2) {
   const r1=RANKS.indexOf(c1.rank),r2=RANKS.indexOf(c2.rank);
   const isPair=c1.rank===c2.rank,isSuited=c1.suit===c2.suit;
   const hi=Math.max(r1,r2),lo=Math.min(r1,r2),gap=hi-lo;
-  // Always skip: pure trash offsuit with no redeeming features
-  // 72o, 73o, 83o, 62o, 52o, 42o, 32o etc.
-  if(!isPair && !isSuited && hi<=7 && gap>=4) return false; // e.g. 72o, 73o
-  if(!isPair && !isSuited && hi<=6) return false;           // e.g. 62o, 52o, 42o
-  if(!isPair && !isSuited && hi<=8 && lo<=3) return false;  // e.g. 83o, 82o
-  // Keep everything else — even weak aces, small pairs, suited trash have interesting spots
+  if(!isPair&&!isSuited&&hi<=7&&gap>=4) return false; // 72o,73o etc
+  if(!isPair&&!isSuited&&hi<=6) return false;          // 62o,52o etc
+  if(!isPair&&!isSuited&&hi<=8&&lo<=3) return false;   // 83o,82o etc
   return true;
 }
 
-// ── Fetch quiz ────────────────────────────────────────────────────
+// ── Fetch Quiz ────────────────────────────────────────────────────
 const recentHands = [];
 async function fetchQuiz() {
-  if (!state.user) return;
-  state.loading = true; state.quiz = null; state.selected = null;
-  state.hintUsed = false; state.hint = null;
+  if(!state.user) return;
+  state.loading=true; state.quiz=null; state.selected=null;
+  state.hintUsed=false; state.hint=null;
   renderQuiz();
-
   try {
-    const deck = shuffleDeck();
-    const isOmaha = state.variant==='mixed' ? Math.random()>0.5 : state.variant==='omaha';
-    const vName = isOmaha ? 'Omaha' : 'Texas Holdem';
-
-    // Keep redealing until we get a hand worth building a scenario around
+    // Deal cards — redeal if trash hand
+    const isOmaha = state.variant==='mixed'?Math.random()>0.5:state.variant==='omaha';
+    const vName = isOmaha?'Omaha':'Texas Holdem';
     let cards, board, tier;
-    let attempts = 0;
+    let attempts=0;
     do {
-      const d = shuffleDeck();
-      cards = isOmaha ? d.slice(0,4) : d.slice(0,2);
-      board = d.slice(isOmaha?4:2, isOmaha?9:7);
-      tier = classifyHand(cards[0], cards[1]);
+      const d=shuffleDeck();
+      cards = isOmaha?d.slice(0,4):d.slice(0,2);
+      board  = d.slice(isOmaha?4:2, isOmaha?9:7);
+      tier   = classifyHand(cards[0],cards[1]);
       attempts++;
-    } while (!isUsableHand(cards[0], cards[1]) && attempts < 20);
-    const tier = classifyHand(cards[0], cards[1]);
-    const holeStr = cards.map(c=>c.rank+c.suit).join(' ');
+    } while(!isUsableHand(cards[0],cards[1]) && attempts<20);
+
+    const holeStr  = cards.map(c=>c.rank+c.suit).join(' ');
+    const boardStr = board.map(c=>c.rank+c.suit).join(' ');
     const isTourney = state.format==='tournament';
-    const seats = [6,7,8,8,8][Math.floor(Math.random()*5)];
-    const stack = [50,100,150,200,300,500][Math.floor(Math.random()*6)];
-    const positions = POS8.slice(0, seats);
-    const heroPos = positions[Math.floor(Math.random()*positions.length)];
-    const stackArr = [stack,stack+20,stack-15,stack+40,stack-10,stack+60,stack+10,stack-5].slice(0,seats).map(v=>'$'+Math.max(10,v));
+    const seats  = [6,7,8,8,8][Math.floor(Math.random()*5)];
+    const stack  = [50,100,150,200,300,500][Math.floor(Math.random()*6)];
+    const positions = POS8.slice(0,seats);
+    const heroPos   = positions[Math.floor(Math.random()*positions.length)];
+    const stackArr  = [stack,stack+20,stack-15,stack+40,stack-10,stack+60,stack+10,stack-5].slice(0,seats).map(v=>'$'+Math.max(10,v));
     const dealerSeat = Math.floor(Math.random()*seats);
-    const streetMap = {preflop:['Preflop'],postflop:['Flop','Turn','River'],bluffing:['Flop','Turn','River']};
+    const streetMap  = {preflop:['Preflop'],postflop:['Flop','Turn','River'],bluffing:['Flop','Turn','River']};
     const streetOpts = streetMap[state.cat]||['Preflop'];
-    const street = streetOpts[Math.floor(Math.random()*streetOpts.length)];
+    const street     = streetOpts[Math.floor(Math.random()*streetOpts.length)];
     const hintMap = {
       preflop:['multiway pot','3-bet pot','squeeze spot','blind vs blind','vs 3-bettor','open from EP'],
       postflop:['c-bet dry board','check-raise wet board','thin value river','bluff-catcher river','triple barrel'],
       bluffing:['river bluff','semi-bluff with equity','overbet bluff','blocking bet','check-raise bluff']
     };
     const sh = hintMap[state.cat][Math.floor(Math.random()*hintMap[state.cat].length)];
-    const diffMap = {
-      Beginner: `BEGINNER DIFFICULTY: Generate a scenario where the correct answer is clear to anyone with basic poker knowledge. Rules: (1) Use strong hands where the right play is obvious — top pair good kicker, strong draws, premium pairs. (2) Wrong answer options must be clearly bad — massive overbets, obvious folds with strong hands, calling with no equity. (3) NO marginal spots, thin value decisions, or multi-street bluffs. (4) The scenario should teach a basic fundamental concept.`,
-      Intermediate: `INTERMEDIATE DIFFICULTY: Generate a genuinely difficult decision that intermediate players commonly get wrong. Rules: (1) Use spots requiring pot odds calculation, position awareness, or range thinking. (2) All 4 answer options should seem plausible to a casual player — only one is correct. (3) Good scenario types: thin value vs bluff on river, 3-bet pot decisions with medium-strength hands, draw decisions with implied odds, squeeze spots, check-raise opportunities. (4) AVOID trivially obvious spots — if a beginner would get it right, make it harder.`,
-      Advanced: `ADVANCED DIFFICULTY: Generate a solver-level spot that even experienced players struggle with. Rules: (1) The correct answer must be counter-intuitive or require GTO reasoning — e.g. checking back top pair for pot control, over-folding to exploit a passive player, bluffing with a made hand, mixing strategies. (2) ALL FOUR answer options must seem reasonable to an experienced player — the wrong answers should be things a strong reg might do. (3) Good scenario types: polarized range spots, ICM pressure folds, thin exploitative adjustments, complex board texture decisions, range advantage situations. (4) Include GTO reasoning in the explanation.`
-    };
-    const legalNote = 'LEGAL ACTIONS: If SB limps into BB, options are Check or Raise ONLY (no fold, no call). If facing raise: Fold/Call/Raise. If first to act preflop: Fold/Limp/Raise. If checked to: Check/Bet. NEVER include illegal actions.';
     const recent = recentHands.slice(-5).join(', ');
+    const diffMap = {
+      Beginner:`BEGINNER DIFFICULTY: Correct answer must be clear to anyone with basic poker knowledge. Use strong hands where the right play is obvious. Wrong answers must be clearly bad. No marginal or tricky spots.`,
+      Intermediate:`INTERMEDIATE DIFFICULTY: Genuinely difficult decision that intermediate players commonly get wrong. All 4 options seem plausible — only one is correct. Use spots requiring pot odds, position awareness, or range thinking.`,
+      Advanced:`ADVANCED DIFFICULTY: Solver-level spot that experienced players struggle with. Correct answer is counter-intuitive or requires GTO reasoning. All four options must seem reasonable to a strong player.`
+    };
+    const diffCtx = diffMap[state.difficulty]||diffMap.Intermediate;
+    const legalNote = 'LEGAL ACTIONS RULE: If SB limps into BB, BB options are Check or Raise ONLY — never fold or call. If facing a raise: Fold/Call/Raise. If first preflop action: Fold/Limp/Raise. If checked to: Check/Bet. Never include illegal actions as answer options.';
 
-    const sys = `Expert poker coach. Game: ${vName}. Format: ${isTourney?'Tournament (ICM, bubble)':'Cash Game'}. Villain: ${state.villain}. ${diffMap[state.difficulty]||diffMap.Intermediate} ${legalNote} Hero is in position ${heroPos} at a ${seats}-handed table. Positions: ${positions.join(', ')}. Use EXACT hole cards ${holeStr}. Do not change them. heroPosition in JSON MUST be "${heroPos}". Respond ONLY with valid JSON no markdown: {"variant":"${vName}","gameType":"${isTourney?'Tournament':'Cash Game'}","street":"${street}","heroPosition":"${heroPos}","numSeats":${seats},"dealerSeat":${dealerSeat},"allPositions":${JSON.stringify(positions)},"stackSizes":${JSON.stringify(stackArr)},"bets":{},"potDisplay":"$0","blinds":"${isTourney?'100/200':'1/2'}","holeCards":${JSON.stringify(cards.map(c=>({rank:c.rank,suit:c.suit})))},"communityCards":[],"showCommunity":false,"scenario":"2-3 sentences. Hero is in ${heroPos}. Describe action before hero clearly.","question":"What is the best action?","options":["A","B","C","D"],"correctIndex":0,"explanation":"3-4 sentences why correct.","hintText":"One hint without revealing answer.","potOdds":{"potSize":"$0","callAmount":"$0","oddsRatio":"X:1","breakEvenPct":"0%","impliedOdds":"note","recommendation":"call or fold"}}`;
-    const prompt = `${state.cat} ${isTourney?'tournament':'cash'} scenario. ${vName}. Hero: ${heroPos}, ${seats}-handed. EXACT cards: ${holeStr} (${tier}). Board seed: ${boardStr}. Stack: $${stack}. Type: ${sh}.${recent?' Avoid: '+recent:''}`;
+    const sys = `You are an expert poker coach generating training scenarios.
+Game: ${vName}. Format: ${isTourney?'Tournament (ICM, bubble context)':'Cash Game (chip EV)'}.
+Villain type: ${state.villain}.
+${diffCtx}
+${legalNote}
+Hero position: ${heroPos}. Table: ${seats}-handed. Positions: ${positions.join(', ')}.
+CRITICAL: heroPosition in JSON MUST be "${heroPos}". Scenario MUST describe hero as being in ${heroPos}.
+Use EXACT hole cards: ${holeStr} — do not change them.
+Vary correct answers — sometimes fold, call, raise, or check.
+Respond ONLY with valid JSON, no markdown:
+{"variant":"${vName}","gameType":"${isTourney?'Tournament':'Cash Game'}","street":"${street}","heroPosition":"${heroPos}","numSeats":${seats},"dealerSeat":${dealerSeat},"allPositions":${JSON.stringify(positions)},"stackSizes":${JSON.stringify(stackArr)},"bets":{},"potDisplay":"$0","blinds":"${isTourney?'100/200':'1/2'}","holeCards":${JSON.stringify(cards.map(c=>({rank:c.rank,suit:c.suit})))},"communityCards":[],"showCommunity":false,"scenario":"2-3 sentences. Hero is in ${heroPos}. Clearly describe the action before hero must decide.","question":"What is the best action?","options":["Legal action A","Legal action B","Legal action C","Legal action D"],"correctIndex":0,"explanation":"3-4 sentences: why correct, pot odds if relevant, ranges, key reasoning.","hintText":"One sentence hint without revealing the answer.","potOdds":{"potSize":"$0","callAmount":"$0","oddsRatio":"X:1","breakEvenPct":"0%","impliedOdds":"note","recommendation":"call or fold"}}`;
+
+    const prompt = `${state.cat} ${isTourney?'tournament':'cash game'} scenario. ${vName}. Hero: ${heroPos} in ${seats}-handed game. EXACT hole cards: ${holeStr} (${tier}). Board seed: ${boardStr}. Stack: $${stack}. Type: ${sh}.${recent?' Avoid recently seen combos: '+recent:''}`;
 
     const txt = await callClaude(sys, prompt, 1400);
     const parsed = JSON.parse(txt.replace(/```json|```/g,'').trim());
     recentHands.push(cards.map(c=>c.rank+c.suit).join(''));
-    if (recentHands.length > 10) recentHands.shift();
+    if(recentHands.length>10) recentHands.shift();
     state.quiz = parsed;
   } catch(e) {
-    state.quiz = {error: true, msg: e.message||'Unknown error'};
+    state.quiz = {error:true, msg:e.message||'Unknown error'};
   }
-
   state.loading = false;
   renderQuiz();
 }
 
-// ── Render quiz ───────────────────────────────────────────────────
-function cardHTML(rank, suit, size) {
-  size = size||1;
-  const w=Math.round(38*size), h=Math.round(54*size);
-  const fs1=Math.round(12*size), fs2=Math.round(16*size);
-  const col=SUIT_COL[suit]||'#1e293b', sym=SUIT_SYM[suit]||suit;
-  return `<div style="width:${w}px;height:${h}px;border-radius:${Math.round(5*size)}px;background:#fff;border:1.5px solid #94a3b8;display:inline-flex;flex-direction:column;padding:2px 3px;box-sizing:border-box;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.4);vertical-align:top">
-    <span style="font-size:${fs1}px;font-weight:800;color:${col};line-height:1;font-family:Georgia,serif">${rank}</span>
-    <span style="font-size:${fs2}px;color:${col};line-height:1;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">${sym}</span>
-    <span style="font-size:${fs1}px;font-weight:800;color:${col};line-height:1;position:absolute;bottom:2px;right:3px;transform:rotate(180deg);font-family:Georgia,serif">${rank}</span>
-  </div>`;
+// ── Render Quiz ───────────────────────────────────────────────────
+function cardHTML(rank,suit,size) {
+  size=size||1;
+  const w=Math.round(38*size),h=Math.round(54*size),fs1=Math.round(12*size),fs2=Math.round(16*size);
+  const col=SUIT_COL[suit]||'#1e293b',sym=SUIT_SYM[suit]||suit;
+  return `<div style="width:${w}px;height:${h}px;border-radius:${Math.round(5*size)}px;background:#fff;border:1.5px solid #94a3b8;display:inline-flex;flex-direction:column;padding:2px 3px;box-sizing:border-box;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.4);vertical-align:top;flex-shrink:0">
+  <span style="font-size:${fs1}px;font-weight:800;color:${col};line-height:1;font-family:Georgia,serif">${rank}</span>
+  <span style="font-size:${fs2}px;color:${col};line-height:1;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">${sym}</span>
+  <span style="font-size:${fs1}px;font-weight:800;color:${col};line-height:1;position:absolute;bottom:2px;right:3px;transform:rotate(180deg);font-family:Georgia,serif">${rank}</span>
+</div>`;
 }
 
 function tableHTML(quiz) {
-  const seats = quiz.numSeats||8, cx=300, cy=150, rx=220, ry=110, hero=seats-1;
-  const pos = quiz.allPositions||POS8.slice(0,seats);
-  let inner = `<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
+  const seats=quiz.numSeats||8,cx=300,cy=150,rx=220,ry=110,hero=seats-1;
+  const pos=quiz.allPositions||POS8.slice(0,seats);
+  let inner=`<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+12}" ry="${ry+12}" fill="#1a4a2e"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx-4}" ry="${ry-4}" fill="#2d7a4a"/>`;
-  if (quiz.potDisplay) {
-    inner += `<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
+  if(quiz.potDisplay&&quiz.potDisplay!=='$0') {
+    inner+=`<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
       <text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="600" font-family="monospace">POT</text>
       <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
   }
-  for (let i=0;i<seats;i++) {
+  for(let i=0;i<seats;i++) {
     const a=(2*Math.PI*i/seats)-Math.PI/2;
-    const x=Math.round(cx+(rx+28)*Math.cos(a)), y=Math.round(cy+(ry+38)*Math.sin(a));
-    const isHero=i===hero, isDealer=quiz.dealerSeat===i;
-    inner += `<circle cx="${x}" cy="${y}" r="${isHero?26:20}" fill="${isHero?'#1e3a5f':'#0f172a'}" stroke="${isHero?'#1a9a9a':'#334155'}" stroke-width="${isHero?2:1.5}"/>`;
-    if (isDealer) inner += `<circle cx="${x+16}" cy="${y-16}" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1"/><text x="${x+16}" y="${y-12}" text-anchor="middle" fill="#1c1917" font-size="8" font-weight="700">D</text>`;
-    inner += `<text x="${x}" y="${y+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#94a3b8'}" font-size="${isHero?9:8}" font-weight="600">${pos[i]||''}</text>`;
-    if (quiz.stackSizes?.[i]) inner += `<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle" fill="#86efac" font-size="8" font-family="monospace">${quiz.stackSizes[i]}</text>`;
-    if (isHero) inner += `<text x="${x}" y="${y+52}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+    const x=Math.round(cx+(rx+28)*Math.cos(a)),y=Math.round(cy+(ry+38)*Math.sin(a));
+    const isHero=i===hero,isDealer=quiz.dealerSeat===i;
+    inner+=`<circle cx="${x}" cy="${y}" r="${isHero?26:20}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#333'}" stroke-width="${isHero?2:1.5}"/>`;
+    if(isDealer) inner+=`<circle cx="${x+16}" cy="${y-16}" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1"/><text x="${x+16}" y="${y-12}" text-anchor="middle" fill="#1c1917" font-size="8" font-weight="700">D</text>`;
+    inner+=`<text x="${x}" y="${y+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#888'}" font-size="${isHero?9:8}" font-weight="600">${pos[i]||''}</text>`;
+    if(quiz.stackSizes?.[i]) inner+=`<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle" fill="#86efac" font-size="8" font-family="monospace">${quiz.stackSizes[i]}</text>`;
+    if(isHero) inner+=`<text x="${x}" y="${y+52}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
   }
   return `<div style="max-width:600px;margin:0 auto"><svg viewBox="0 0 600 300" style="width:100%;overflow:visible">${inner}</svg></div>`;
 }
 
 function renderQuiz() {
-  const area = document.getElementById('quiz-area');
-  if (!area) return;
-
-  if (state.loading) {
-    area.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:14px">
+  const area=document.getElementById('quiz-area'); if(!area) return;
+  if(state.loading) {
+    area.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:14px">
       <div style="font-size:40px;color:#1a9a9a;animation:spin 1.2s linear infinite;display:inline-block">&#9824;</div>
-      <div style="color:#555;font-size:13px">Shuffling scenario...</div>
+      <div style="color:#444;font-size:13px">Shuffling scenario...</div>
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>`;
     return;
   }
-
-  const q = state.quiz;
-  if (!q) return;
-
-  if (q.error) {
-    area.innerHTML = `<div style="text-align:center;padding:40px">
+  const q=state.quiz; if(!q) return;
+  if(q.error) {
+    area.innerHTML=`<div style="text-align:center;padding:40px">
       <div style="color:#f87171;font-size:14px;margin-bottom:8px">Failed to load scenario</div>
-      <div style="color:#555;font-size:12px;margin-bottom:16px;word-break:break-word">${q.msg||''}</div>
-      <button class="btn-outline" onclick="fetchQuiz()">Retry</button>
+      <div style="color:#444;font-size:12px;margin-bottom:16px;word-break:break-word;max-width:500px;margin-left:auto;margin-right:auto">${q.msg||''}</div>
+      <button class="btn-sm" onclick="fetchQuiz()">Retry</button>
     </div>`;
     return;
   }
 
-  // Meta chips
-  let html = `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">`;
-  [q.variant,q.gameType,q.street,'Pos: '+(q.heroPosition||'—'),'vs '+state.villain,state.difficulty].forEach((t,i) => {
-    html += `<span style="font-size:10px;padding:3px 8px;border-radius:8px;background:${i===0?'rgba(26,154,154,0.2)':'rgba(255,255,255,0.04)'};color:${i===0?'#1a9a9a':'#666'};border:1px solid ${i===0?'#1a9a9a44':'#1a1a1a'};font-weight:600">${t}</span>`;
+  let html=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">`;
+  [q.variant,q.gameType,q.street,'Pos: '+(q.heroPosition||'—'),'vs '+state.villain,state.difficulty].forEach((t,i)=>{
+    html+=`<span style="font-size:10px;padding:3px 8px;border-radius:8px;background:${i===0?'rgba(26,154,154,0.15)':'rgba(255,255,255,0.04)'};color:${i===0?'#1a9a9a':'#555'};border:1px solid ${i===0?'#1a9a9a33':'#111'};font-weight:600">${t}</span>`;
   });
-  html += `</div>`;
+  html+=`</div>`;
 
-  // Table
-  html += `<div style="background:#0a0a0a;border-radius:12px;border:1px solid #1a1a1a;padding:12px 6px 6px;margin-bottom:12px">${tableHTML(q)}`;
-  if (q.holeCards?.length) {
-    html += `<div style="display:flex;justify-content:center;gap:8px;margin-top:-10px">`;
-    q.holeCards.forEach(c => { html += cardHTML(c.rank, c.suit, 1.15); });
-    html += `</div>`;
+  html+=`<div style="background:#0a0a0a;border-radius:12px;border:1px solid #111;padding:12px 6px 6px;margin-bottom:12px">${tableHTML(q)}`;
+  if(q.holeCards?.length) {
+    html+=`<div style="display:flex;justify-content:center;gap:8px;margin-top:-10px;padding-bottom:4px">`;
+    q.holeCards.forEach(c=>{ html+=cardHTML(c.rank,c.suit,1.15); });
+    html+=`</div>`;
   }
-  html += `</div>`;
+  html+=`</div>`;
 
-  // Stats strip
-  html += `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">`;
-  [{l:'Street',v:q.street,c:'#1a9a9a'},{l:'Pos',v:q.heroPosition||'—',c:'#fff'},{l:'Pot',v:q.potDisplay||'—',c:'#facc15'},{l:'Blinds',v:q.blinds||'1/2',c:'#4ade80'}].forEach(s => {
-    html += `<div style="flex:1;min-width:60px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a">
-      <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div>
+  html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">`;
+  [{l:'Street',v:q.street,c:'#1a9a9a'},{l:'Pos',v:q.heroPosition||'—',c:'#fff'},{l:'Pot',v:q.potDisplay||'—',c:'#facc15'},{l:'Blinds',v:q.blinds||'1/2',c:'#4ade80'}].forEach(s=>{
+    html+=`<div style="flex:1;min-width:60px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a">
+      <div style="font-size:9px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div>
       <div style="font-size:13px;font-weight:700;color:${s.c}">${s.v}</div>
     </div>`;
   });
-  html += `</div>`;
+  html+=`</div>`;
 
-  // Scenario
-  html += `<div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:11px 14px;font-size:13px;color:#aaa;line-height:1.7;margin-bottom:12px">${q.scenario}</div>`;
-  html += `<div style="font-size:15px;font-weight:700;color:#fff;line-height:1.5;margin-bottom:12px">${q.question}</div>`;
+  html+=`<div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:11px 14px;font-size:13px;color:#888;line-height:1.7;margin-bottom:12px">${q.scenario}</div>`;
+  html+=`<div style="font-size:15px;font-weight:700;color:#fff;line-height:1.5;margin-bottom:12px">${q.question}</div>`;
 
-  // Pot odds panel
-  if (q.potOdds) {
-    const po = q.potOdds;
-    html += `<div style="border-radius:10px;border:1px solid ${state.showPotOdds?'#1a9a9a':'#1a1a1a'};background:${state.showPotOdds?'rgba(26,154,154,0.07)':'#111'};padding:11px 13px;margin-bottom:12px">
+  if(q.potOdds) {
+    const po=q.potOdds;
+    html+=`<div style="border-radius:10px;border:1px solid ${state.showPotOdds?'#1a9a9a':'#1a1a1a'};background:${state.showPotOdds?'rgba(26,154,154,0.07)':'#111'};padding:11px 13px;margin-bottom:12px;transition:all 0.2s">
       <div style="display:flex;align-items:center;justify-content:space-between;${state.showPotOdds?'margin-bottom:10px':''}">
-        <span style="font-size:10px;color:${state.showPotOdds?'#1a9a9a':'#444'};font-weight:700;text-transform:uppercase;letter-spacing:0.8px">Pot Odds — ${state.showPotOdds?'Revealed':'Hidden'}</span>
-        <div onclick="togglePotOdds()" style="width:36px;height:20px;border-radius:10px;background:${state.showPotOdds?'#1a9a9a':'#222'};border:1px solid ${state.showPotOdds?'#1a9a9a':'#333'};cursor:pointer;position:relative">
-          <div style="position:absolute;top:2px;left:${state.showPotOdds?'18px':'2px'};width:14px;height:14px;border-radius:50%;background:#fff"></div>
+        <span style="font-size:10px;color:${state.showPotOdds?'#1a9a9a':'#333'};font-weight:700;text-transform:uppercase;letter-spacing:0.8px">Pot Odds — ${state.showPotOdds?'Revealed':'Hidden'}</span>
+        <div onclick="togglePotOdds()" style="width:36px;height:20px;border-radius:10px;background:${state.showPotOdds?'#1a9a9a':'#222'};border:1px solid ${state.showPotOdds?'#1a9a9a':'#333'};cursor:pointer;position:relative;flex-shrink:0">
+          <div style="position:absolute;top:2px;left:${state.showPotOdds?'18px':'2px'};width:14px;height:14px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
         </div>
       </div>`;
-    if (state.showPotOdds) {
-      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
-      [{l:'Pot Size',v:po.potSize,c:'#facc15'},{l:'Call Amount',v:po.callAmount,c:'#f87171'},{l:'Odds Ratio',v:po.oddsRatio,c:'#1a9a9a'},{l:'Break-even',v:po.breakEvenPct,c:'#4ade80'}].forEach(s => {
-        html += `<div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 10px">
-          <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div>
+    if(state.showPotOdds) {
+      html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+      [{l:'Pot Size',v:po.potSize,c:'#facc15'},{l:'Call Amount',v:po.callAmount,c:'#f87171'},{l:'Odds Ratio',v:po.oddsRatio,c:'#1a9a9a'},{l:'Break-even',v:po.breakEvenPct,c:'#4ade80'}].forEach(s=>{
+        html+=`<div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:9px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div>
           <div style="font-size:14px;font-weight:700;color:${s.c};font-family:monospace">${s.v}</div>
         </div>`;
       });
-      html += `</div>
-      <div style="font-size:11px;color:#aaa;margin-top:8px"><span style="color:#1a9a9a;font-weight:600">Implied: </span>${po.impliedOdds}</div>
+      html+=`</div>
+      <div style="font-size:11px;color:#666;margin-top:8px"><span style="color:#1a9a9a;font-weight:600">Implied: </span>${po.impliedOdds}</div>
       <div style="font-size:12px;color:${po.recommendation?.toLowerCase().includes('call')?'#4ade80':'#f87171'};font-weight:600;margin-top:4px">Math says: ${po.recommendation}</div>`;
     } else {
-      html += `<div style="font-size:11px;color:#333;margin-top:0">Calculate the odds yourself first — then toggle to check</div>`;
+      html+=`<div style="font-size:11px;color:#333">Try to calculate the odds yourself first — then toggle to check</div>`;
     }
-    html += `</div>`;
+    html+=`</div>`;
   }
 
-  // Hint
-  if (!state.selected) {
-    if (!state.hintUsed) {
-      html += `<button onclick="getHint()" style="padding:7px 14px;border-radius:8px;background:rgba(26,154,154,0.08);border:1px solid #1a9a9a44;color:#1a9a9a;font-size:12px;cursor:pointer;font-weight:600;margin-bottom:12px;font-family:inherit">Show Hint</button>`;
-    } else if (state.hint) {
-      html += `<div style="font-size:12px;color:#1a9a9a;background:rgba(26,154,154,0.08);border-radius:8px;padding:8px 12px;border:1px solid #1a9a9a44;line-height:1.5;margin-bottom:12px">Hint: ${state.hint}</div>`;
+  if(state.selected===null) {
+    if(!state.hintUsed) {
+      html+=`<button onclick="getHint()" style="padding:7px 14px;border-radius:8px;background:rgba(26,154,154,0.08);border:1px solid #1a9a9a33;color:#1a9a9a;font-size:12px;cursor:pointer;font-weight:600;margin-bottom:12px;font-family:inherit">Show Hint</button>`;
+    } else if(state.hint) {
+      html+=`<div style="font-size:12px;color:#1a9a9a;background:rgba(26,154,154,0.08);border-radius:8px;padding:8px 12px;border:1px solid #1a9a9a33;line-height:1.5;margin-bottom:12px">Hint: ${state.hint}</div>`;
     }
   }
 
-  // Options
-  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">`;
-  (q.options||[]).forEach((opt, i) => {
-    let cls = 'opt-btn', icon = String.fromCharCode(65+i);
-    if (state.selected !== null) {
-      if (i===q.correctIndex) { cls += ' correct'; icon = '✓'; }
-      else if (i===state.selected) { cls += ' wrong'; icon = '✗'; }
-      else cls += ' dimmed';
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">`;
+  (q.options||[]).forEach((opt,i)=>{
+    let cls='opt-btn', icon=String.fromCharCode(65+i);
+    if(state.selected!==null) {
+      if(i===q.correctIndex){ cls+=' correct'; icon='✓'; }
+      else if(i===state.selected){ cls+=' wrong'; icon='✗'; }
+      else cls+=' dimmed';
     }
-    html += `<button class="${cls}" onclick="answer(${i})"><span style="font-weight:700;font-size:10px;opacity:0.7;flex-shrink:0">${icon}</span>${opt}</button>`;
+    html+=`<button class="${cls}" onclick="answer(${i})"><span style="font-weight:700;font-size:10px;opacity:0.7;flex-shrink:0">${icon}</span>${opt}</button>`;
   });
-  html += `</div>`;
+  html+=`</div>`;
 
-  // Explanation
-  if (state.selected !== null) {
-    const ok = state.selected === q.correctIndex;
-    html += `<div style="border-radius:10px;padding:12px 14px;background:${ok?'rgba(74,222,128,0.08)':'rgba(248,113,113,0.08)'};border:1px solid ${ok?'#166534':'#991b1b'};font-size:13px;color:#aaa;line-height:1.7;margin-bottom:12px">
+  if(state.selected!==null) {
+    const ok=state.selected===q.correctIndex;
+    html+=`<div style="border-radius:10px;padding:12px 14px;background:${ok?'rgba(74,222,128,0.08)':'rgba(248,113,113,0.08)'};border:1px solid ${ok?'#166534':'#991b1b'};font-size:13px;color:#888;line-height:1.7;margin-bottom:12px">
       <div style="font-weight:700;color:${ok?'#4ade80':'#f87171'};margin-bottom:4px;font-size:14px">${ok?'Correct!':'Incorrect'}</div>
       ${q.explanation}
     </div>
@@ -663,173 +612,164 @@ function renderQuiz() {
 }
 
 function answer(idx) {
-  if (state.selected !== null || !state.quiz || state.quiz.error) return;
-  state.selected = idx;
-  const ok = idx === state.quiz.correctIndex;
-  state.streak = ok ? state.streak+1 : 0;
-  const p = state.user;
-  p.totalQ = (p.totalQ||0)+1;
-  p.totalCorrect = (p.totalCorrect||0)+(ok?1:0);
-  p.streakBest = Math.max(p.streakBest||0, state.streak);
-  const cat = state.cat;
-  p.cats = p.cats||{preflop:{q:0,c:0},postflop:{q:0,c:0},bluffing:{q:0,c:0}};
-  p.cats[cat] = p.cats[cat]||{q:0,c:0};
+  if(state.selected!==null||!state.quiz||state.quiz.error) return;
+  state.selected=idx;
+  const ok=idx===state.quiz.correctIndex;
+  state.streak=ok?state.streak+1:0;
+  const p=state.user; if(!p) return;
+  p.totalQ=(p.totalQ||0)+1;
+  p.totalCorrect=(p.totalCorrect||0)+(ok?1:0);
+  p.streakBest=Math.max(p.streakBest||0,state.streak);
+  const cat=state.cat;
+  p.cats=p.cats||{preflop:{q:0,c:0},postflop:{q:0,c:0},bluffing:{q:0,c:0}};
+  p.cats[cat]=p.cats[cat]||{q:0,c:0};
   p.cats[cat].q++;
-  if (ok) p.cats[cat].c++;
-  p.history = [...((p.history||[]).slice(-199)), {ts:Date.now(),cat,correct:ok,q:(state.quiz.question||'').slice(0,60)}];
-  p.handLog = [...((p.handLog||[]).slice(-499)), {ts:Date.now(),cat,correct:ok,question:state.quiz.question,yourAnswer:state.quiz.options?.[idx]}];
+  if(ok) p.cats[cat].c++;
+  p.history=[...((p.history||[]).slice(-199)),{ts:Date.now(),cat,correct:ok,q:(state.quiz.question||'').slice(0,60)}];
+  p.handLog=[...((p.handLog||[]).slice(-499)),{ts:Date.now(),cat,correct:ok,question:state.quiz.question,yourAnswer:state.quiz.options?.[idx]}];
   persistUser();
-  if (state.sessionMode) {
-    state.sessionAnswers = state.sessionAnswers||[];
+  if(state.sessionMode) {
     state.sessionAnswers.push({correct:ok,question:state.quiz.question});
     state.sessionCount++;
-    const btn = document.getElementById('session-btn');
-    if (btn) btn.textContent = state.sessionCount+'/10';
-    if (state.sessionCount >= 10) {
-      setTimeout(()=>showSessionReport(), 500);
-    }
+    const btn=document.getElementById('session-btn'); if(btn) btn.textContent=state.sessionCount+'/10';
+    if(state.sessionCount>=10) setTimeout(showSessionReport,400);
   }
   renderQuiz();
 }
 
 async function getHint() {
-  const q = state.quiz;
-  if (!q || state.hintUsed) return;
-  if (q.hintText) { state.hint = q.hintText; state.hintUsed = true; renderQuiz(); return; }
-  state.hintUsed = true;
+  const q=state.quiz; if(!q||state.hintUsed) return;
+  if(q.hintText){ state.hint=q.hintText; state.hintUsed=true; renderQuiz(); return; }
+  state.hintUsed=true; renderQuiz();
   try {
-    const t = await callClaude('Give ONE short poker hint (1 sentence) without revealing the answer.',
-      'Hand: '+JSON.stringify({holeCards:q.holeCards,scenario:q.scenario,question:q.question}), 200);
-    state.hint = t.replace(/```/g,'').trim();
-  } catch { state.hint = 'Consider your position and pot odds.'; }
+    const t=await callClaude('Give ONE short poker hint (1 sentence) without revealing the answer.',
+      'Hand: '+JSON.stringify({holeCards:q.holeCards,scenario:q.scenario,question:q.question}),200);
+    state.hint=t.replace(/```/g,'').trim();
+  } catch { state.hint='Consider your position and pot odds.'; }
   renderQuiz();
 }
 
+// ── Session Report ────────────────────────────────────────────────
 function showSessionReport() {
-  const answers = state.sessionAnswers||[];
-  const correct = answers.filter(a=>a.correct).length;
-  const pct = Math.round((correct/answers.length)*100);
-  const col = pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
-  let html = `<div style="text-align:center;margin-bottom:20px">
+  const answers=state.sessionAnswers||[];
+  const correct=answers.filter(a=>a.correct).length;
+  const pct=Math.round((correct/answers.length)*100);
+  const col=pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
+  let html=`<div style="text-align:center;margin-bottom:20px">
     <div style="font-size:48px;font-weight:800;color:${col}">${pct}%</div>
-    <div style="font-size:14px;color:#aaa;margin-top:4px">${correct}/${answers.length} correct</div>
+    <div style="font-size:14px;color:#666;margin-top:4px">${correct}/${answers.length} correct &middot; ${state.cat} session</div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:16px">`;
-  [{l:'Correct',v:correct,c:'#4ade80'},{l:'Wrong',v:answers.length-correct,c:'#f87171'},{l:'Accuracy',v:pct+'%',c:col}].forEach(s => {
-    html += `<div style="flex:1;background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a;text-align:center">
-      <div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div>
+  [{l:'Correct',v:correct,c:'#4ade80'},{l:'Wrong',v:answers.length-correct,c:'#f87171'},{l:'Accuracy',v:pct+'%',c:col}].forEach(s=>{
+    html+=`<div style="flex:1;background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a;text-align:center">
+      <div style="font-size:10px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div>
       <div style="font-size:18px;font-weight:700;color:${s.c}">${s.v}</div>
     </div>`;
   });
-  html += `</div><button class="btn" onclick="closeOverlay();state.sessionMode=false;state.sessionCount=0;state.sessionAnswers=[];document.getElementById('session-btn').textContent='Session (10)';fetchQuiz()">Back to Training</button>`;
-  document.getElementById('overlay-content').innerHTML = html;
-  document.getElementById('overlay').style.display = 'flex';
+  html+=`</div><button class="btn" onclick="closeOverlay();state.sessionMode=false;state.sessionCount=0;state.sessionAnswers=[];document.getElementById('session-btn').textContent='Session (10)';fetchQuiz()">Back to Training</button>`;
+  document.getElementById('overlay-content').innerHTML=html;
+  document.getElementById('overlay').style.display='flex';
 }
 
 // ── Analytics ─────────────────────────────────────────────────────
 function showAnalytics() {
-  const p = state.user;
-  if (!p) return;
-  const tQ=p.totalQ||0, tC=p.totalCorrect||0;
-  const ov = tQ ? Math.round((tC/tQ)*100) : 0;
-  const ovc = ov>=70?'#4ade80':ov>=40?'#facc15':'#f87171';
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+  const p=state.user; if(!p) return;
+  const tQ=p.totalQ||0,tC=p.totalCorrect||0,ov=tQ?Math.round((tC/tQ)*100):0;
+  const ovc=ov>=70?'#4ade80':ov>=40?'#facc15':'#f87171';
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <div><div style="font-size:16px;font-weight:700;color:#1a9a9a">${p.name} — Analytics</div>
-    <div style="font-size:11px;color:#555;margin-top:2px">${p.sessions||0} sessions &middot; ${tQ} questions &middot; Best streak: ${p.streakBest||0}</div></div>
-    <button onclick="closeOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;color:#555;cursor:pointer;padding:4px 10px;font-size:13px">&times;</button>
+    <div style="font-size:11px;color:#444;margin-top:2px">${p.sessions||0} sessions &middot; ${tQ} questions &middot; Best streak: ${p.streakBest||0}</div></div>
+    <button onclick="closeOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;color:#444;cursor:pointer;padding:4px 10px;font-size:13px;font-family:inherit">&times;</button>
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">`;
-  [{l:'Accuracy',v:tQ?ov+'%':'—',c:ovc},{l:'Questions',v:tQ,c:'#1a9a9a'},{l:'Correct',v:tC,c:'#4ade80'}].forEach(s => {
-    html += `<div style="background:#111;border-radius:10px;padding:11px;border:1px solid #1a1a1a">
-      <div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div>
+  [{l:'Accuracy',v:tQ?ov+'%':'—',c:ovc},{l:'Questions',v:tQ,c:'#1a9a9a'},{l:'Correct',v:tC,c:'#4ade80'}].forEach(s=>{
+    html+=`<div style="background:#111;border-radius:10px;padding:11px;border:1px solid #1a1a1a">
+      <div style="font-size:10px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div>
       <div style="font-size:18px;font-weight:700;color:${s.c}">${s.v}</div>
     </div>`;
   });
-  html += `</div><div style="background:#111;border-radius:12px;padding:13px;border:1px solid #1a1a1a;margin-bottom:12px">
-    <div style="font-size:10px;color:#444;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Category Breakdown</div>`;
-  ['preflop','postflop','bluffing'].forEach(cat => {
-    const s = p.cats?.[cat]||{q:0,c:0};
-    const pct = s.q ? Math.round((s.c/s.q)*100) : 0;
-    const col = pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
-    html += `<div style="margin-bottom:10px">
+  html+=`</div><div style="background:#111;border-radius:12px;padding:13px;border:1px solid #1a1a1a;margin-bottom:12px">
+    <div style="font-size:10px;color:#333;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Category Breakdown</div>`;
+  ['preflop','postflop','bluffing'].forEach(cat=>{
+    const s=p.cats?.[cat]||{q:0,c:0},pct=s.q?Math.round((s.c/s.q)*100):0,col=pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
+    html+=`<div style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <span style="font-size:12px;color:#aaa;text-transform:capitalize">${cat}</span>
-        <span style="font-size:11px;color:#444">${s.c}/${s.q}${s.q>0?` <span style="color:${col};font-weight:600">${pct}%</span>`:''}</span>
+        <span style="font-size:12px;color:#888;text-transform:capitalize">${cat}</span>
+        <span style="font-size:11px;color:#333">${s.c}/${s.q}${s.q>0?` <span style="color:${col};font-weight:600">${pct}%</span>`:''}</span>
       </div>
       <div style="height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden">
         <div style="width:${s.q?pct:0}%;height:100%;background:${col};border-radius:3px"></div>
       </div>
     </div>`;
   });
-  html += `</div>`;
-  const leaks = ['preflop','postflop','bluffing'].filter(c=>(p.cats?.[c]?.q||0)>=3&&Math.round(((p.cats[c].c||0)/(p.cats[c].q||1))*100)<60);
-  const strengths = ['preflop','postflop','bluffing'].filter(c=>(p.cats?.[c]?.q||0)>=3&&Math.round(((p.cats[c].c||0)/(p.cats[c].q||1))*100)>=70);
-  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+  html+=`</div>`;
+  const leaks=['preflop','postflop','bluffing'].filter(c=>(p.cats?.[c]?.q||0)>=3&&Math.round(((p.cats[c].c||0)/(p.cats[c].q||1))*100)<60);
+  const strengths=['preflop','postflop','bluffing'].filter(c=>(p.cats?.[c]?.q||0)>=3&&Math.round(((p.cats[c].c||0)/(p.cats[c].q||1))*100)>=70);
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
     <div style="background:rgba(248,113,113,0.06);border-radius:10px;padding:11px;border:1px solid rgba(248,113,113,0.15)">
       <div style="font-size:10px;color:#f87171;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px">Leaks</div>
-      ${leaks.length?leaks.map(c=>`<div style="font-size:12px;color:#fca5a5;margin-bottom:3px;text-transform:capitalize">${c}</div>`).join(''):'<div style="font-size:12px;color:#333">None found</div>'}
+      ${leaks.length?leaks.map(c=>`<div style="font-size:12px;color:#fca5a5;margin-bottom:3px;text-transform:capitalize">${c}</div>`).join(''):'<div style="font-size:12px;color:#222">None found yet</div>'}
     </div>
     <div style="background:rgba(74,222,128,0.06);border-radius:10px;padding:11px;border:1px solid rgba(74,222,128,0.15)">
       <div style="font-size:10px;color:#4ade80;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px">Strengths</div>
-      ${strengths.length?strengths.map(c=>`<div style="font-size:12px;color:#86efac;margin-bottom:3px;text-transform:capitalize">${c}</div>`).join(''):'<div style="font-size:12px;color:#333">Keep playing!</div>'}
+      ${strengths.length?strengths.map(c=>`<div style="font-size:12px;color:#86efac;margin-bottom:3px;text-transform:capitalize">${c}</div>`).join(''):'<div style="font-size:12px;color:#222">Keep playing!</div>'}
     </div>
   </div>`;
-  document.getElementById('overlay-content').innerHTML = html;
-  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('overlay-content').innerHTML=html;
+  document.getElementById('overlay').style.display='flex';
 }
 
 // ── Hand Analyzer ─────────────────────────────────────────────────
 function showHandAnalyzer() {
-  document.getElementById('overlay-content').innerHTML = `
+  document.getElementById('overlay-content').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
       <div><div style="font-size:16px;font-weight:700;color:#1a9a9a">Hand Analyzer</div>
-      <div style="font-size:11px;color:#555;margin-top:2px">Describe a hand for coaching feedback</div></div>
-      <button onclick="closeOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;color:#555;cursor:pointer;padding:4px 10px;font-size:13px">&times;</button>
+      <div style="font-size:11px;color:#444;margin-top:2px">Describe a hand for coaching feedback</div></div>
+      <button onclick="closeOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;color:#444;cursor:pointer;padding:4px 10px;font-size:13px;font-family:inherit">&times;</button>
     </div>
     <textarea id="hand-txt" placeholder="Describe your hand...\n\nExample:\n$1/$2 NL, BTN with AhKd, $200 stacks.\nMP raises $6, I 3-bet $18, MP calls.\nFlop: Ks7h2c. I bet $22, MP calls.\nTurn: 4d. I bet $50, MP calls.\nRiver: Jc. MP bets $100, I called. MP shows 77. Lost." rows="8" style="width:100%;padding:11px;border-radius:10px;background:#111;border:1px solid #333;color:#fff;font-size:13px;line-height:1.6;resize:vertical;outline:none;font-family:system-ui,sans-serif;box-sizing:border-box;margin-bottom:10px"></textarea>
-    <div id="hand-err" style="font-size:12px;color:#f87171;margin-bottom:8px;display:none"></div>
     <div id="hand-result"></div>
     <button class="btn" onclick="analyzeHand()">Analyze Hand</button>`;
-  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('overlay').style.display='flex';
 }
 
 async function analyzeHand() {
-  const txt = (document.getElementById('hand-txt')?.value||'').trim();
-  if (!txt) return;
-  const res = document.getElementById('hand-result');
-  if (res) res.innerHTML = '<div style="color:#555;font-size:13px;margin-bottom:10px">Analyzing...</div>';
+  const txt=(document.getElementById('hand-txt')?.value||'').trim();
+  if(!txt) return;
+  const res=document.getElementById('hand-result');
+  if(res) res.innerHTML='<div style="color:#444;font-size:13px;margin-bottom:10px">Analyzing...</div>';
   try {
-    const sys = `Expert poker coach. Respond ONLY valid JSON: {"summary":"","heroCards":"","gameContext":"","result":"","overallGrade":"A","gradeSummary":"","streets":[{"street":"Preflop","action":"","grade":"A","verdict":"Good","analysis":"","alternative":null}],"keyMistakes":[],"wellPlayed":[],"studyTip":""}`;
-    const t = await callClaude(sys, 'Analyze:\n\n'+txt, 1500);
-    const r = JSON.parse(t.replace(/```json|```/g,'').trim());
+    const sys=`Expert poker coach. Respond ONLY valid JSON: {"summary":"","heroCards":"","gameContext":"","result":"","overallGrade":"A","gradeSummary":"","streets":[{"street":"Preflop","action":"","grade":"A","verdict":"Good","analysis":"","alternative":null}],"keyMistakes":[],"wellPlayed":[],"studyTip":""}`;
+    const t=await callClaude(sys,'Analyze:\n\n'+txt,1500);
+    const r=JSON.parse(t.replace(/```json|```/g,'').trim());
     const gc={A:'#4ade80',B:'#86efac',C:'#facc15',D:'#f87171'};
     const vc={Good:'#4ade80',Okay:'#facc15',Mistake:'#f87171'};
-    let html = `<div style="background:#111;border-radius:10px;padding:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:12px;margin-bottom:10px">
-      <div style="width:50px;height:50px;border-radius:10px;background:${gc[r.overallGrade]}22;border:2px solid ${gc[r.overallGrade]};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:${gc[r.overallGrade]};flex-shrink:0">${r.overallGrade}</div>
+    let html=`<div style="background:#111;border-radius:10px;padding:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:50px;height:50px;border-radius:10px;background:${gc[r.overallGrade]||'#555'}22;border:2px solid ${gc[r.overallGrade]||'#555'};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:${gc[r.overallGrade]||'#555'};flex-shrink:0">${r.overallGrade}</div>
       <div><div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px">${r.summary}</div>
-      <div style="font-size:11px;color:#555">${r.gameContext} &middot; ${r.result}</div>
-      <div style="font-size:12px;color:#aaa;margin-top:3px">${r.gradeSummary}</div></div>
+      <div style="font-size:11px;color:#444">${r.gameContext} &middot; ${r.result}</div>
+      <div style="font-size:12px;color:#666;margin-top:3px">${r.gradeSummary}</div></div>
     </div>`;
-    (r.streets||[]).forEach(s => {
-      html += `<div style="background:#111;border-radius:10px;border:1px solid #1a1a1a;padding:10px 12px;margin-bottom:8px">
+    (r.streets||[]).forEach(s=>{
+      html+=`<div style="background:#111;border-radius:10px;border:1px solid #1a1a1a;padding:10px 12px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-          <span style="font-size:11px;font-weight:700;color:#555;min-width:52px">${s.street}</span>
+          <span style="font-size:11px;font-weight:700;color:#444;min-width:52px">${s.street}</span>
           <span style="font-size:10px;padding:2px 7px;border-radius:6px;background:${vc[s.verdict]||'#555'}22;color:${vc[s.verdict]||'#555'};font-weight:600">${s.verdict}</span>
           <span style="font-size:13px;font-weight:800;color:${gc[s.grade]||'#fff'};margin-left:auto">${s.grade}</span>
         </div>
-        <div style="font-size:12px;color:#666;font-style:italic;margin-bottom:3px">${s.action}</div>
-        <div style="font-size:12px;color:#aaa;line-height:1.7">${s.analysis}</div>
-        ${s.alternative?`<div style="font-size:12px;color:#1a9a9a;background:rgba(26,154,154,0.06);border-radius:7px;padding:5px 8px;border:1px solid #1a9a9a44;margin-top:5px">Alt: ${s.alternative}</div>`:''}
+        <div style="font-size:12px;color:#555;font-style:italic;margin-bottom:3px">${s.action}</div>
+        <div style="font-size:12px;color:#888;line-height:1.7">${s.analysis}</div>
+        ${s.alternative?`<div style="font-size:12px;color:#1a9a9a;background:rgba(26,154,154,0.06);border-radius:7px;padding:5px 8px;border:1px solid #1a9a9a33;margin-top:5px">Alt: ${s.alternative}</div>`:''}
       </div>`;
     });
-    if (r.studyTip) html += `<div style="background:rgba(26,154,154,0.06);border-radius:10px;padding:10px;border:1px solid #1a9a9a44;margin-bottom:10px">
+    if(r.studyTip) html+=`<div style="background:rgba(26,154,154,0.06);border-radius:10px;padding:10px;border:1px solid #1a9a9a33;margin-bottom:10px">
       <div style="font-size:10px;color:#1a9a9a;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.8px">Coach Tip</div>
-      <div style="font-size:13px;color:#aaa;line-height:1.7">${r.studyTip}</div>
+      <div style="font-size:13px;color:#888;line-height:1.7">${r.studyTip}</div>
     </div>`;
-    html += `<button class="btn-outline" onclick="document.getElementById('hand-result').innerHTML='';document.getElementById('hand-txt').value=''" style="margin-bottom:10px">Analyze Another</button>`;
-    if (res) res.innerHTML = html;
+    html+=`<button class="btn-sm" onclick="document.getElementById('hand-result').innerHTML='';document.getElementById('hand-txt').value=''" style="margin-bottom:10px">Analyze Another</button>`;
+    if(res) res.innerHTML=html;
   } catch(e) {
-    if (res) res.innerHTML = `<div style="color:#f87171;font-size:13px;margin-bottom:10px">Failed: ${e.message}</div>`;
+    if(res) res.innerHTML=`<div style="color:#f87171;font-size:13px;margin-bottom:10px">Failed: ${e.message}</div>`;
   }
 }
 
@@ -837,19 +777,18 @@ async function analyzeHand() {
 function renderEquityCalc() {
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div><div style="font-size:11px;color:#555;margin-bottom:4px">Hand 1</div><input class="inp" id="eq-h1" value="Ah Kd" placeholder="Ah Kd"/></div>
-      <div><div style="font-size:11px;color:#555;margin-bottom:4px">Hand 2</div><input class="inp" id="eq-h2" value="Qh Qc" placeholder="Qh Qc"/></div>
+      <div><div style="font-size:11px;color:#444;margin-bottom:4px">Hand 1</div><input class="inp" id="eq-h1" value="Ah Kd" placeholder="Ah Kd"/></div>
+      <div><div style="font-size:11px;color:#444;margin-bottom:4px">Hand 2</div><input class="inp" id="eq-h2" value="Qh Qc" placeholder="Qh Qc"/></div>
     </div>
-    <div><div style="font-size:11px;color:#555;margin-bottom:4px">Board (optional)</div><input class="inp" id="eq-board" placeholder="Kc 7h 2d"/></div>
+    <div><div style="font-size:11px;color:#444;margin-bottom:4px">Board (optional)</div><input class="inp" id="eq-board" placeholder="Kc 7h 2d"/></div>
     <button class="btn" onclick="calcEquity()">Calculate Equity</button>
     <div id="eq-result"></div>
   </div>`;
 }
-
 async function calcEquity() {
-  const h1=document.getElementById('eq-h1')?.value||'', h2=document.getElementById('eq-h2')?.value||'', board=document.getElementById('eq-board')?.value||'';
+  const h1=document.getElementById('eq-h1')?.value||'',h2=document.getElementById('eq-h2')?.value||'',board=document.getElementById('eq-board')?.value||'';
   const res=document.getElementById('eq-result'); if(!res) return;
-  res.innerHTML='<div style="color:#555;font-size:13px">Calculating...</div>';
+  res.innerHTML='<div style="color:#444;font-size:13px">Calculating...</div>';
   try {
     const t=await callClaude(`Poker equity calculator. Respond ONLY valid JSON: {"hand1":{"cards":"Ah Kd","equity":47.3,"description":"AK high"},"hand2":{"cards":"Qh Qc","equity":52.7,"description":"Overpair"},"ties":0.5,"analysis":"2-3 sentences."}`,`Hand 1: ${h1}\nHand 2: ${h2}\nBoard: ${board||'none'}`);
     const r=JSON.parse(t.replace(/```json|```/g,'').trim());
@@ -861,12 +800,12 @@ async function calcEquity() {
           <span style="font-size:18px;font-weight:800;color:${item.h.equity>=50?'#4ade80':'#f87171'}">${item.h.equity}%</span>
         </div>
         <div style="height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden"><div style="width:${item.h.equity}%;height:100%;background:${item.h.equity>=50?'#4ade80':'#f87171'};border-radius:3px"></div></div>
-        <div style="font-size:11px;color:#444;margin-top:5px">${item.h.description}</div>
+        <div style="font-size:11px;color:#333;margin-top:5px">${item.h.description}</div>
       </div>`;
     });
-    html+=`<div style="background:rgba(26,154,154,0.06);border-radius:10px;padding:11px;border:1px solid #1a9a9a44;font-size:12px;color:#aaa;line-height:1.7">${r.analysis}</div>`;
+    html+=`<div style="background:rgba(26,154,154,0.06);border-radius:10px;padding:11px;border:1px solid #1a9a9a33;font-size:12px;color:#666;line-height:1.7">${r.analysis}</div>`;
     res.innerHTML=html;
-  } catch(e){res.innerHTML=`<div style="color:#f87171;font-size:13px">Failed: ${e.message}</div>`;}
+  } catch(e){ res.innerHTML=`<div style="color:#f87171;font-size:13px">Failed: ${e.message}</div>`; }
 }
 
 function renderBankroll() {
@@ -876,32 +815,30 @@ function renderBankroll() {
   const wins=sessions.filter(s=>s.profit>0).length;
   let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">`;
   [{l:'Profit',v:(total>=0?'+':'')+total.toFixed(2),c:total>=0?'#4ade80':'#f87171'},{l:'Sessions',v:sessions.length,c:'#1a9a9a'},{l:'Win Rate',v:sessions.length?Math.round((wins/sessions.length)*100)+'%':'—',c:'#facc15'}].forEach(s=>{
-    html+=`<div style="background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a"><div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div><div style="font-size:16px;font-weight:700;color:${s.c}">${s.v}</div></div>`;
+    html+=`<div style="background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a"><div style="font-size:10px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div><div style="font-size:16px;font-weight:700;color:${s.c}">${s.v}</div></div>`;
   });
-  html+=`</div>
-  <div style="background:#111;border-radius:12px;padding:12px;border:1px solid #1a1a1a;margin-bottom:12px">
-    <div style="font-size:10px;color:#444;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Log Session</div>
+  html+=`</div><div style="background:#111;border-radius:12px;padding:12px;border:1px solid #1a1a1a;margin-bottom:12px">
+    <div style="font-size:10px;color:#333;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Log Session</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Date</div><input type="date" id="br-date" value="${new Date().toISOString().slice(0,10)}" class="inp"/></div>
-      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Game</div><input id="br-game" placeholder="1/2 NL" class="inp"/></div>
-      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Buy-in ($)</div><input type="number" id="br-buyin" placeholder="200" class="inp"/></div>
-      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Cash-out ($)</div><input type="number" id="br-cashout" placeholder="350" class="inp"/></div>
+      <div><div style="font-size:10px;color:#333;margin-bottom:3px">Date</div><input type="date" id="br-date" value="${new Date().toISOString().slice(0,10)}" class="inp"/></div>
+      <div><div style="font-size:10px;color:#333;margin-bottom:3px">Game</div><input id="br-game" placeholder="1/2 NL" class="inp"/></div>
+      <div><div style="font-size:10px;color:#333;margin-bottom:3px">Buy-in ($)</div><input type="number" id="br-buyin" placeholder="200" class="inp"/></div>
+      <div><div style="font-size:10px;color:#333;margin-bottom:3px">Cash-out ($)</div><input type="number" id="br-cashout" placeholder="350" class="inp"/></div>
     </div>
     <input id="br-notes" placeholder="Notes..." class="inp" style="margin-bottom:8px"/>
     <button class="btn" onclick="addSession()">Add Session</button>
   </div>
   <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">`;
-  [...sessions].reverse().forEach((s,i)=>{
+  [...sessions].reverse().forEach(s=>{
     html+=`<div style="display:flex;align-items:center;gap:8px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a">
-      <div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:600">${s.date}${s.game?' · <span style="color:#555;font-weight:400">'+s.game+'</span>':''}</div>${s.notes?`<div style="font-size:11px;color:#444">${s.notes}</div>`:''}</div>
+      <div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:600">${s.date}${s.game?' &middot; <span style="color:#444;font-weight:400">'+s.game+'</span>':''}</div>${s.notes?`<div style="font-size:11px;color:#333">${s.notes}</div>`:''}</div>
       <div style="font-size:13px;font-weight:700;color:${s.profit>=0?'#4ade80':'#f87171'}">${s.profit>=0?'+':''}${s.profit.toFixed(2)}</div>
     </div>`;
   });
-  if (!sessions.length) html+=`<div style="font-size:12px;color:#222;text-align:center;padding:20px">No sessions yet.</div>`;
+  if(!sessions.length) html+=`<div style="font-size:12px;color:#222;text-align:center;padding:20px">No sessions yet.</div>`;
   html+=`</div>`;
   return html;
 }
-
 function addSession() {
   const id=state.user?.id; if(!id) return;
   const buyin=parseFloat(document.getElementById('br-buyin')?.value||'0');
@@ -910,22 +847,22 @@ function addSession() {
   const sessions=S.get('upc:br:'+id)||[];
   sessions.push({id:Date.now(),date:document.getElementById('br-date')?.value||'',game:document.getElementById('br-game')?.value||'',buyin,cashout,profit:cashout-buyin,notes:document.getElementById('br-notes')?.value||''});
   sessions.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  S.set('upc:br:'+id, sessions);
+  S.set('upc:br:'+id,sessions);
   setTool('bankroll');
 }
 
 function renderHandLog() {
   const log=(state.user?.handLog||[]).slice().reverse();
-  let html=`<input class="inp" id="hl-search" placeholder="Search hands..." oninput="filterHandLog()" style="margin-bottom:10px"/>
+  let html=`<input class="inp" id="hl-search" placeholder="Search hands..." oninput="filterHandLog(this.value)" style="margin-bottom:10px"/>
   <div id="hl-list" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto">`;
   log.forEach(h=>{
     html+=`<div style="background:#111;border-radius:8px;padding:9px 11px;border:1px solid #1a1a1a">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
         <span style="color:${h.correct?'#4ade80':'#f87171'};font-size:11px">${h.correct?'✓':'✗'}</span>
-        <span style="font-size:10px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,0.05);color:#444;text-transform:capitalize">${h.cat}</span>
-        <span style="font-size:10px;color:#222;margin-left:auto">${new Date(h.ts).toLocaleDateString()}</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,0.04);color:#333;text-transform:capitalize">${h.cat}</span>
+        <span style="font-size:10px;color:#1e1e1e;margin-left:auto">${new Date(h.ts).toLocaleDateString()}</span>
       </div>
-      <div style="font-size:12px;color:#aaa;line-height:1.5">${h.question||''}</div>
+      <div style="font-size:12px;color:#666;line-height:1.5">${h.question||''}</div>
       ${h.yourAnswer?`<div style="font-size:11px;color:${h.correct?'#86efac':'#fca5a5'};margin-top:3px">You: ${h.yourAnswer}</div>`:''}
     </div>`;
   });
@@ -933,9 +870,8 @@ function renderHandLog() {
   html+=`</div>`;
   return html;
 }
-
-function filterHandLog() {
-  const q=(document.getElementById('hl-search')?.value||'').toLowerCase();
+function filterHandLog(q) {
+  q=(q||'').toLowerCase();
   const log=(state.user?.handLog||[]).filter(h=>(h.question||'').toLowerCase().includes(q)).reverse();
   const list=document.getElementById('hl-list'); if(!list) return;
   let html='';
@@ -943,18 +879,15 @@ function filterHandLog() {
     html+=`<div style="background:#111;border-radius:8px;padding:9px 11px;border:1px solid #1a1a1a">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
         <span style="color:${h.correct?'#4ade80':'#f87171'};font-size:11px">${h.correct?'✓':'✗'}</span>
-        <span style="font-size:10px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,0.05);color:#444;text-transform:capitalize">${h.cat}</span>
-        <span style="font-size:10px;color:#222;margin-left:auto">${new Date(h.ts).toLocaleDateString()}</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,0.04);color:#333;text-transform:capitalize">${h.cat}</span>
       </div>
-      <div style="font-size:12px;color:#aaa;line-height:1.5">${h.question||''}</div>
+      <div style="font-size:12px;color:#666;line-height:1.5">${h.question||''}</div>
     </div>`;
   });
-  list.innerHTML = html || `<div style="font-size:12px;color:#222;text-align:center;padding:20px">No results.</div>`;
+  list.innerHTML=html||`<div style="font-size:12px;color:#222;text-align:center;padding:20px">No results.</div>`;
 }
 
-function closeOverlay() {
-  document.getElementById('overlay').style.display = 'none';
-}
+function closeOverlay() { document.getElementById('overlay').style.display='none'; }
 </script>
 </body>
 </html>

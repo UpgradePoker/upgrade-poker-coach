@@ -422,8 +422,15 @@ async function fetchQuiz() {
     const isTourney = state.format==='tournament';
     const seats  = [6,7,8,8,8][Math.floor(Math.random()*5)];
     const stack  = [50,100,150,200,300,500][Math.floor(Math.random()*6)];
-    const positions = POS8.slice(0,seats);
-    const heroPos   = positions[Math.floor(Math.random()*positions.length)];
+    // Positions rotate clockwise each hand. Physical seats are fixed.
+    // Seat 0 = bottom of screen. Order clockwise: BTN, SB, BB, UTG, UTG+1...CO
+    // We randomly rotate the starting position to simulate a different hand
+    const FULL_POS = ['BTN','SB','BB','UTG','UTG+1','UTG+2','MP','HJ','CO'];
+    const posPool  = FULL_POS.slice(0, seats); // trim to table size
+    // Random rotation simulates different dealer positions each hand
+    const rotation = Math.floor(Math.random() * seats);
+    const positions = [...posPool.slice(rotation), ...posPool.slice(0, rotation)];
+    const heroPos   = positions[Math.floor(Math.random() * positions.length)];
     const stackArr  = [stack,stack+20,stack-15,stack+40,stack-10,stack+60,stack+10,stack-5].slice(0,seats).map(v=>'$'+Math.max(10,v));
     const dealerSeat = Math.floor(Math.random()*seats);
     const streetMap  = {preflop:['Preflop'],postflop:['Flop','Turn','River'],bluffing:['Flop','Turn','River']};
@@ -483,40 +490,72 @@ function cardHTML(rank,suit,size) {
 }
 
 function tableHTML(quiz) {
-  const seats=quiz.numSeats||8,cx=300,cy=150,rx=220,ry=110;
-  const pos=quiz.allPositions||POS8.slice(0,seats);
+  const cx=300, cy=150, rx=220, ry=110;
+  const seats = quiz.numSeats || 8;
 
-  // Hero seat = whichever seat index matches heroPosition
-  const heroSeat = pos.indexOf(quiz.heroPosition);
+  // Physical seats are fixed clockwise starting at bottom-center (seat 0 = bottom)
+  // Position labels rotate — the AI tells us heroPosition and allPositions
+  // allPositions[i] = the position label for physical seat i
+  const posLabels = quiz.allPositions || POS8.slice(0, seats);
+  const heroPos   = quiz.heroPosition || '';
+  const stackSizes = quiz.stackSizes || [];
 
-  // Dealer button always sits on BTN seat
-  const btnSeat = pos.indexOf('BTN');
+  // Proper clockwise position order for display verification
+  // Seats are numbered 0..n-1 clockwise from bottom
+  // seat 0 = bottom-center, seat 1 = bottom-right, etc.
 
-  let inner=`<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
+  let inner = `<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+12}" ry="${ry+12}" fill="#1a4a2e"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx-4}" ry="${ry-4}" fill="#2d7a4a"/>`;
-  if(quiz.potDisplay&&quiz.potDisplay!=='$0') {
-    inner+=`<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
+
+  if (quiz.potDisplay && quiz.potDisplay !== '$0') {
+    inner += `<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
       <text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="600" font-family="monospace">POT</text>
       <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
   }
-  for(let i=0;i<seats;i++) {
-    const a=(2*Math.PI*i/seats)-Math.PI/2;
-    const x=Math.round(cx+(rx+28)*Math.cos(a)),y=Math.round(cy+(ry+38)*Math.sin(a));
-    const isHero=i===heroSeat;
-    const isBtn=i===btnSeat;
 
-    inner+=`<circle cx="${x}" cy="${y}" r="${isHero?26:20}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#333'}" stroke-width="${isHero?2:1.5}"/>`;
+  for (let i = 0; i < seats; i++) {
+    // Seat positions: start at bottom (π/2 = 6 o'clock), go clockwise
+    // i=0 → bottom, i=1 → bottom-right, etc.
+    const a = (2 * Math.PI * i / seats) + Math.PI / 2;
+    const x = Math.round(cx + (rx+28) * Math.cos(a));
+    const y = Math.round(cy + (ry+38) * Math.sin(a));
 
-    // Dealer button always on BTN seat
-    if(isBtn) inner+=`<circle cx="${x+16}" cy="${y-16}" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1"/><text x="${x+16}" y="${y-12}" text-anchor="middle" fill="#1c1917" font-size="8" font-weight="700">D</text>`;
+    const label   = posLabels[i] || '';
+    const stack   = stackSizes[i] || '';
+    const isHero  = label === heroPos;
+    const isBtn   = label === 'BTN';
 
-    inner+=`<text x="${x}" y="${y+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#888'}" font-size="${isHero?9:8}" font-weight="600">${pos[i]||''}</text>`;
-    if(quiz.stackSizes?.[i]) inner+=`<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle" fill="#86efac" font-size="8" font-family="monospace">${quiz.stackSizes[i]}</text>`;
-    if(isHero) inner+=`<text x="${x}" y="${y+52}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+    inner += `<circle cx="${x}" cy="${y}" r="${isHero?26:20}"
+      fill="${isHero?'#0d2a1a':'#0a0a0a'}"
+      stroke="${isHero?'#1a9a9a':'#333'}"
+      stroke-width="${isHero?2:1.5}"/>`;
+
+    // D chip always on BTN seat, wherever BTN is this hand
+    if (isBtn) {
+      inner += `<circle cx="${x+18}" cy="${y-18}" r="9" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
+        <text x="${x+18}" y="${y-14}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="700">D</text>`;
+    }
+
+    inner += `<text x="${x}" y="${y+4}" text-anchor="middle"
+      fill="${isHero?'#1a9a9a':'#888'}"
+      font-size="${isHero?9:8}" font-weight="600">${label}</text>`;
+
+    if (stack) {
+      inner += `<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle"
+        fill="#86efac" font-size="8" font-family="monospace">${stack}</text>`;
+    }
+
+    if (isHero) {
+      inner += `<text x="${x}" y="${y+52}" text-anchor="middle"
+        fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+    }
   }
-  return `<div style="max-width:600px;margin:0 auto"><svg viewBox="0 0 600 300" style="width:100%;overflow:visible">${inner}</svg></div>`;
+
+  return `<div style="max-width:600px;margin:0 auto">
+    <svg viewBox="0 0 600 300" style="width:100%;overflow:visible">${inner}</svg>
+  </div>`;
 }
 
 function renderQuiz() {

@@ -875,13 +875,19 @@ function cardSVG(rank, suit, x, y, w, h){
 }
 
 function tableHTML(quiz){
-  const cx=300,cy=155,rx=215,ry=105;
+  // Wider viewBox with extra bottom padding so hero cards always visible
+  const W=620, H=420;
+  const cx=W/2, cy=165, rx=210, ry=100;
   const seats=quiz.numSeats||6;
   const posLabels=quiz.allPositions||buildPos(seats);
   const heroPos=quiz.heroPosition||'';
   const stacks=quiz.stackSizes||[];
-  const holeCards=quiz.holeCards||[];   // guaranteed array
+  const holeCards=quiz.holeCards||[];
   const cc=quiz.communityCards||[];
+  const isPLO=holeCards.length===4;
+
+  // Card dimensions
+  const cw=isPLO?22:28, ch=isPLO?32:40, cgap=4;
 
   let inner=`
     <ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
@@ -889,12 +895,12 @@ function tableHTML(quiz){
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx-4}" ry="${ry-4}" fill="#2d7a4a"/>`;
 
-  // Community cards
+  // Community cards in center
   if(cc.length>0){
-    const cw=36,ch=50,gap=5;
-    const totalW=cc.length*cw+(cc.length-1)*gap;
-    const sx=cx-totalW/2, sy=cy-ch/2;
-    cc.forEach((c,i)=>{inner+=cardSVG(c.rank,c.suit,sx+i*(cw+gap),sy,cw,ch);});
+    const bw=36,bh=50,bgap=5;
+    const totalW=cc.length*bw+(cc.length-1)*bgap;
+    const sx=cx-totalW/2, sy=cy-bh/2;
+    cc.forEach((c,i)=>{inner+=cardSVG(c.rank,c.suit,sx+i*(bw+bgap),sy,bw,bh);});
     if(quiz.potDisplay&&quiz.potDisplay!=='$0')
       inner+=`<text x="${cx}" y="${sy-8}" text-anchor="middle" fill="#fcd34d" font-size="11" font-weight="700" font-family="monospace">POT ${quiz.potDisplay}</text>`;
   } else if(quiz.potDisplay&&quiz.potDisplay!=='$0'){
@@ -903,45 +909,53 @@ function tableHTML(quiz){
       <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
   }
 
-  // Seats
+  // First pass: compute all seat positions
+  const seatData=[];
   for(let i=0;i<seats;i++){
     const a=(2*Math.PI*i/seats)+Math.PI/2;
-    const sx=Math.round(cx+(rx+30)*Math.cos(a));
-    const sy=Math.round(cy+(ry+40)*Math.sin(a));
+    const sx=Math.round(cx+(rx+32)*Math.cos(a));
+    const sy=Math.round(cy+(ry+44)*Math.sin(a));
     const label=posLabels[i]||'';
-    const stack=stacks[i]||'';
     const isHero=label===heroPos;
     const isBtn=label==='BTN';
-
-    // Seat circle
-    inner+=`<circle cx="${sx}" cy="${sy}" r="${isHero?27:21}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#2a2a2a'}" stroke-width="${isHero?2.5:1.5}"/>`;
-
-    // Dealer button
-    if(isBtn) inner+=`<circle cx="${sx+19}" cy="${sy-19}" r="9" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/><text x="${sx+19}" y="${sy-15}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="800">D</text>`;
-
-    // Position label
-    inner+=`<text x="${sx}" y="${sy+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#999'}" font-size="${isHero?10:9}" font-weight="700">${label}</text>`;
-
-    // YOU label
-    if(isHero) inner+=`<text x="${sx}" y="${sy-15}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
-
-    // Stack size
-    if(stack) inner+=`<text x="${sx}" y="${sy+(isHero?42:36)}" text-anchor="middle" fill="#86efac" font-size="9" font-family="monospace">${stack}</text>`;
-
-    // Hero hole cards — rendered below the seat
-    if(isHero && holeCards.length>0){
-      const isPLO=holeCards.length===4;
-      const cw=isPLO?20:26, ch=isPLO?29:37, cgap=3;
-      const totalCW=holeCards.length*cw+(holeCards.length-1)*cgap;
-      const hcX=sx-totalCW/2;
-      const hcY=sy+(stack?52:46);
-      holeCards.forEach((c,ci)=>{
-        inner+=cardSVG(c.rank,c.suit,hcX+ci*(cw+cgap),hcY,cw,ch);
-      });
-    }
+    const stack=stacks[i]||'';
+    seatData.push({sx,sy,label,isHero,isBtn,stack});
   }
 
-  return `<div style="max-width:600px;margin:0 auto"><svg viewBox="0 0 600 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;overflow:visible">${inner}</svg></div>`;
+  // Render seats (non-hero first, hero on top so cards render last)
+  [...seatData].sort((a,b)=>a.isHero?1:-1).forEach(({sx,sy,label,isHero,isBtn,stack})=>{
+    // Seat circle
+    inner+=`<circle cx="${sx}" cy="${sy}" r="${isHero?28:22}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#2a2a2a'}" stroke-width="${isHero?2.5:1.5}"/>`;
+
+    // Dealer chip
+    if(isBtn) inner+=`<circle cx="${sx+20}" cy="${sy-20}" r="10" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/><text x="${sx+20}" y="${sy-16}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="800">D</text>`;
+
+    // YOU label
+    if(isHero) inner+=`<text x="${sx}" y="${sy-16}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+
+    // Position label
+    inner+=`<text x="${sx}" y="${sy+5}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#aaa'}" font-size="${isHero?10:9}" font-weight="700">${label}</text>`;
+
+    // Stack
+    if(stack) inner+=`<text x="${sx}" y="${sy+(isHero?45:37)}" text-anchor="middle" fill="#86efac" font-size="9" font-family="monospace">${stack}</text>`;
+
+    // Hero hole cards — positioned to the LEFT of the seat circle
+    if(isHero && holeCards.length>0){
+      const cardW=isPLO?30:38, cardH=isPLO?42:54, gap=5;
+      const totalCW=holeCards.length*cardW+(holeCards.length-1)*gap;
+      const r=28; // hero circle radius
+      // Place cards so their right edge is a few px left of the circle edge
+      const rightEdge=sx-r-6;
+      const hcX=rightEdge-totalCW;
+      // Vertically center cards on the seat circle
+      const hcY=sy-cardH/2;
+      holeCards.forEach((c,ci)=>{
+        inner+=cardSVG(c.rank,c.suit,hcX+ci*(cardW+gap),hcY,cardW,cardH);
+      });
+    }
+  });
+
+  return `<div style="max-width:620px;margin:0 auto"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${inner}</svg></div>`;
 }
 
 // ═══════════════════════════════════════════════════════

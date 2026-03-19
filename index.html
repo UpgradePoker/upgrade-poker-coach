@@ -207,7 +207,227 @@ function drawPLO(tiers){const pool=[];tiers.forEach(t=>{if(PLO_TIERS[t])pool.pus
 function bStr(b){return b.map(c=>c.rank+SYM[c.suit]).join(' ');}
 function parseDollar(s){return parseFloat((s||'0').replace(/[^0-9.]/g,''))||0;}
 function boardTex(b){const sc={s:0,h:0,d:0,c:0};b.forEach(c=>sc[c.suit]++);const maxS=Math.max(...Object.values(sc));const ri=b.map(c=>RI[c.rank]).sort((a,z)=>a-z);const span=ri[ri.length-1]-ri[0];if(maxS>=2&&span<=4)return'wet';if(maxS>=2||span<=4)return'semi-wet';return'dry';}
-function nlStr(c1,c2,board){const bR=board.map(c=>c.rank);const bI=board.map(c=>RI[c.rank]);const allS=[c1.suit,c2.suit,...board.map(c=>c.suit)];if(bR.filter(r=>r===c1.rank).length>=2||bR.filter(r=>r===c2.rank).length>=2)return'monster';if(bR.includes(c1.rank)&&bR.includes(c2.rank))return'strong';if(bR.includes(c1.rank)||bR.includes(c2.rank)){const topB=Math.max(...bI);const hr=bR.includes(c1.rank)?c1.rank:c2.rank;return RI[hr]===topB&&(RI[c1.rank]>=10||RI[c2.rank]>=10)?'strong':'medium';}if([c1.suit,c2.suit].some(s=>allS.filter(x=>x===s).length>=3))return'draw';const combo=[...new Set([RI[c1.rank],RI[c2.rank],...bI])].sort((a,z)=>a-z);for(let i=0;i<=combo.length-4;i++){if(combo[i+3]-combo[i]===3)return'draw';}return'weak';}
+// Full deterministic NLH hand evaluator
+// Returns {strength, description, sdv, dangerLevel}
+// sdv = showdown value (0-10), dangerLevel = how scary board is for hero
+function evalNLH(c1, c2, board) {
+  const all = [c1, c2, ...board];
+  const bR = board.map(c => c.rank);
+  const bI = board.map(c => RI[c.rank]);
+  const allS = all.map(c => c.suit);
+
+  // ── Made hand detection ──────────────────────────────
+  // Count rank frequencies across all 7 cards (or fewer on flop/turn)
+  const rankFreq = {};
+  all.forEach(c => { rankFreq[c.rank] = (rankFreq[c.rank] || 0) + 1; });
+
+  const pairs = Object.entries(rankFreq).filter(([,v]) => v === 2).map(([k]) => k);
+  const trips = Object.entries(rankFreq).filter(([,v]) => v === 3).map(([k]) => k);
+  const quads = Object.entries(rankFreq).filter(([,v]) => v === 4).map(([k]) => k);
+
+  // Hero hole card ranks
+  const h1 = c1.rank, h2 = c2.rank;
+
+  // Flush: 5 of same suit using hero cards
+  const flushSuit = SUITS.find(s => allS.filter(x => x === s).length >= 5);
+  const heroFlush = flushSuit && (c1.suit === flushSuit || c2.suit === flushSuit);
+
+  // Straight: check all 5-card combos from sorted unique ranks
+  const allRanks = [...new Set(all.map(c => RI[c.rank]))].sort((a,b)=>a-b);
+  // Add low ace
+  if (allRanks.includes(12)) allRanks.unshift(-1);
+  let heroStraight = false;
+  for (let i = 0; i <= allRanks.length - 5; i++) {
+    const window = allRanks.slice(i, i+5);
+    if (window[4] - window[0] === 4 && new Set(window).size === 5) {
+      // Check hero contributes to this straight
+      const heroIdxs = [RI[h1], RI[h2], h1 === 'A' ? -1 : null, h2 === 'A' ? -1 : null].filter(x => x !== null);
+      if (heroIdxs.some(hi => window.includes(hi))) { heroStraight = true; break; }
+    }
+  }
+
+  // Set/trips using hero cards
+  const heroTrips = trips.includes(h1) || trips.includes(h2) ||
+    (h1 === h2 && bR.includes(h1)); // pocket pair + board pair = set
+  const heroQuads = quads.includes(h1) || quads.includes(h2);
+
+  // Full house
+  const heroFH = (heroTrips && pairs.length > 0) ||
+    (trips.length >= 2) ||
+    (pairs.includes(h1) && pairs.includes(h2) && h1 !== h2 && trips.length > 0);
+
+  // Two pair — CORRECTLY detect counterfeiting
+  // Hero's two pair only counts if hero contributes BOTH pairs
+  // A hole card pairing the board counts as one pair
+  // If board already has a pair (e.g. TT), hero's weaker pair may be "counterfeited"
+  const boardPairs = Object.entries(bR.reduce((a,r)=>{a[r]=(a[r]||0)+1;return a;},{}))
+    .filter(([,v])=>v>=2).map(([k])=>k);
+  const heroPairWithBoard1 = bR.includes(h1) && !boardPairs.includes(h1);
+  const heroPairWithBoard2 = bR.includes(h2) && !boardPairs.includes(h2);
+  const heroPocketPair = h1 === h2;
+
+  // Counterfeited: hero has one pair with board but board already pairs that rank
+  const counterfeited1 = bR.includes(h1) && boardPairs.includes(h1);
+  const counterfeited2 = bR.includes(h2) && boardPairs.includes(h2);
+
+  // True two pair: hero contributes to 2 distinct pairs, neither counterfeited by board pairs
+  const heroTwoPair = !heroTrips && !heroFH && (
+    (heroPairWithBoard1 && heroPairWithBoard2) ||
+    (heroPocketPair && bR.includes(h1) && !boardPairs.includes(h1)) ||
+    (heroPairWithBoard1 && heroPocketPair && h1 !== h2) ||
+    (heroPairWithBoard2 && heroPocketPair && h1 !== h2)
+  );
+
+  // One pair
+  const heroOnePair = !heroTwoPair && !heroTrips && !heroFH && !heroQuads &&
+    (heroPairWithBoard1 || heroPairWithBoard2 || heroPocketPair);
+
+  // Top pair quality
+  const topBoardRank = Math.max(...bI);
+  const isTopPair = (bR.includes(h1) && RI[h1] === topBoardRank) ||
+                    (bR.includes(h2) && RI[h2] === topBoardRank);
+  const heroKicker = Math.max(RI[h1], RI[h2]);
+  const topPairGoodKicker = isTopPair && heroKicker >= 10; // T+ kicker
+
+  // ── Draw detection (for flop/turn) ──────────────────
+  const isBoardComplete = board.length >= 5;
+  const flushDraw = !heroFlush && [c1.suit, c2.suit].some(s => allS.filter(x => x === s).length >= 3);
+  // OESD / gutshot
+  const heroIs = [RI[h1], RI[h2]];
+  if (RI[h1] === 12) heroIs.push(-1); // ace low
+  if (RI[h2] === 12) heroIs.push(-1);
+  const comboRanks = [...new Set([...heroIs, ...bI])].sort((a,b)=>a-b);
+  let oesd = false, gutshot = false;
+  for (let i = 0; i <= comboRanks.length - 4; i++) {
+    const w = comboRanks.slice(i, i+4);
+    const span = w[3] - w[0];
+    const heroInWindow = heroIs.some(hi => w.includes(hi));
+    if (heroInWindow && span === 3 && new Set(w).size === 4) oesd = true;
+    if (heroInWindow && span === 4 && new Set(w).size === 4) gutshot = true;
+  }
+
+  // ── Board danger assessment ──────────────────────────
+  // Flags that make checking back / pot control more correct
+  const boardPaired = boardPairs.length > 0;
+  const flushCompleted = board.length >= 3 && (() => {
+    const sc = {};
+    board.forEach(c => { sc[c.suit] = (sc[c.suit]||0)+1; });
+    return Object.values(sc).some(v => v >= 3);
+  })();
+  const flushCompletedOnRiver = board.length === 5 && (() => {
+    const sc = {};
+    board.forEach(c => { sc[c.suit] = (sc[c.suit]||0)+1; });
+    return Object.values(sc).some(v => v >= 3);
+  })();
+  // Straightening board: 3+ connected cards
+  const boardConnected = bI.length >= 3 && (() => {
+    const sorted = [...new Set(bI)].sort((a,b)=>a-b);
+    for (let i = 0; i <= sorted.length-3; i++) {
+      if (sorted[i+2]-sorted[i] <= 4) return true;
+    }
+    return false;
+  })();
+
+  // Danger level 0-3
+  let dangerLevel = 0;
+  if (boardPaired) dangerLevel++;
+  if (flushCompleted) dangerLevel++;
+  if (boardConnected) dangerLevel++;
+
+  // ── Assign strength & SDV ────────────────────────────
+  let strength, sdv, description;
+
+  if (heroQuads)        { strength='monster'; sdv=10; description='Four of a kind'; }
+  else if (heroStraight && heroFlush) { strength='monster'; sdv=10; description='Straight flush'; }
+  else if (heroFlush)   { strength='monster'; sdv=9; description='Flush'; }
+  else if (heroStraight){ strength='monster'; sdv=9; description='Straight'; }
+  else if (heroFH)      { strength='monster'; sdv=9; description='Full house'; }
+  else if (heroTrips)   { strength='strong'; sdv=8; description='Three of a kind / Set'; }
+  else if (heroTwoPair) {
+    // Downgrade if board is very dangerous (flush completed, paired board, etc.)
+    if (dangerLevel >= 2 || (boardPaired && !isTopPair)) {
+      strength='medium'; sdv=5; description='Two pair (vulnerable on dangerous board)';
+    } else {
+      strength='strong'; sdv=7; description='Two pair';
+    }
+  }
+  else if (heroOnePair) {
+    if (topPairGoodKicker) { strength='medium'; sdv=6; description='Top pair, good kicker'; }
+    else if (isTopPair)    { strength='medium'; sdv=5; description='Top pair, weak kicker'; }
+    else if (heroPocketPair && RI[h1] > topBoardRank) { strength='medium'; sdv=6; description='Overpair'; }
+    else                   { strength='weak';   sdv=3; description='Underpair / middle pair'; }
+  }
+  else if (!isBoardComplete) {
+    if (flushDraw && oesd) { strength='draw'; sdv=2; description='Flush draw + straight draw'; }
+    else if (flushDraw)    { strength='draw'; sdv=2; description='Flush draw'; }
+    else if (oesd)         { strength='draw'; sdv=2; description='Open-ended straight draw'; }
+    else if (gutshot)      { strength='draw'; sdv=1; description='Gutshot straight draw'; }
+    else                   { strength='weak';  sdv=1; description='No made hand, no draw'; }
+  }
+  else { strength='weak'; sdv=1; description='Missed / no made hand'; }
+
+  // ── Correct action logic ─────────────────────────────
+  // Now derive the GTO-correct postflop action based on:
+  // strength, sdv, dangerLevel, street, position
+  return { strength, sdv, description, dangerLevel, boardPaired,
+           flushCompleted: flushCompletedOnRiver, boardConnected,
+           heroFlush, heroStraight, heroFH, heroTrips, heroTwoPair, heroOnePair,
+           counterfeited: counterfeited1 || counterfeited2,
+           topPairGoodKicker, isTopPair };
+}
+
+// Derive correct postflop action from eval result
+function correctPostflop(ev, street, pos, tex) {
+  const ip = pos === 'BTN' || pos === 'CO' || pos === 'HJ';
+  const isRiver = street === 'River';
+  const isTurn  = street === 'Turn';
+  const isFlop  = street === 'Flop';
+
+  // Monsters always bet for value
+  if (ev.strength === 'monster') return isRiver ? BET100 : BET66;
+
+  // Strong hands
+  if (ev.strength === 'strong') {
+    // Two pair on paired + flush board: pot control, check back
+    if (ev.heroTwoPair && ev.dangerLevel >= 2) return CHECK;
+    // Two pair but board paired (could be counterfeited): smaller bet or check
+    if (ev.heroTwoPair && ev.boardPaired && isRiver) return ev.sdv >= 7 ? BET50 : CHECK;
+    if (ev.heroTwoPair && ev.flushCompleted && isRiver) return CHECK;
+    return isRiver ? BET66 : BET50;
+  }
+
+  // Medium (top pair etc.)
+  if (ev.strength === 'medium') {
+    if (isRiver) {
+      // Dangerous board: check back medium hands
+      if (ev.dangerLevel >= 2) return CHECK;
+      if (ev.flushCompleted && !ev.heroFlush) return CHECK;
+      if (ev.boardPaired && ev.counterfeited) return CHECK;
+      return ev.topPairGoodKicker ? BET50 : CHECK;
+    }
+    if (isTurn) return ev.topPairGoodKicker && ev.dangerLevel <= 1 ? BET50 : CHECK;
+    // Flop
+    return tex === 'dry' ? BET33 : CHECK;
+  }
+
+  // Draws (only relevant pre-river)
+  if (ev.strength === 'draw' && !isRiver) {
+    return ip ? BET33 : CHECK; // IP: range bet; OOP: check
+  }
+
+  // Weak
+  return CHECK;
+}
+
+// Wrapper used by scenario builders
+function nlStr(c1, c2, board) {
+  return evalNLH(c1, c2, board).strength;
+}
+function nlCorrectAction(c1, c2, board, street, pos) {
+  const tex = boardTex(board);
+  const ev = evalNLH(c1, c2, board);
+  return { action: correctPostflop(ev, street, pos, tex), ev, tex };
+}
 function buildPos(n){return['UTG','UTG+1','MP','HJ','CO','BTN','SB','BB'].slice(0,n);}
 function buildStacks(n,itr){const base=itr?rnd([5000,8000,10000,15000]):rnd([200,300,500]);return Array.from({length:n},()=>{const v=base*(0.7+Math.random()*0.8);return itr?Math.round(Math.max(1000,v)).toLocaleString():'$'+Math.round(Math.max(50,v));});}
 
@@ -418,63 +638,59 @@ const NLH_POST=[
     const pos=rnd(['BTN','CO','HJ']);
     const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);
     const board=drawBoard(cards,3);
-    const tex=boardTex(board);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=tex==='dry'?BET33:(str==='monster'||str==='strong')?BET50:CHECK;
-    const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;
+    const {action:correct, ev, tex}=nlCorrectAction(cards[0],cards[1],board,'Flop',pos);
+    const pot=itr?`${bb*6}bb`:`${Math.round(bb*6)}`;
     return{cards,heroPos:pos,allPos,seats,board,street:'Flop',
       pfHist:`Hero opens ${pos}, BB calls. Flop: ${bStr(board)}. BB checks to hero.`,
       pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'cbet'),
-      key:hkey(cards[0],cards[1]),tex,str,
-      rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} (${tex}) — ${str}`,
-      pfCtx:`Hero opened ${pos}, BB defended. Board: ${bStr(board)} (${tex}). BB checks. Pot: ${pot}.`,
+      key:hkey(cards[0],cards[1]),tex,str:ev.strength,
+      rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${ev.description} (${tex}, danger:${ev.dangerLevel})`,
+      pfCtx:`Hero opened ${pos}, BB defended. Hero has ${ev.description} on ${bStr(board)} (${tex} board, danger level ${ev.dangerLevel}/3). BB checks. Pot: ${pot}.`,
       label:`Flop: IP c-bet (${tex} board)`};
   }},
   {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
     const op=rnd(['BTN','CO']);
     const cards=drawFrom(NLBBDEF);
     const board=drawBoard(cards,3);
-    const tex=boardTex(board);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=str==='monster'?CHECKRAISE:str==='strong'?CALL:(str==='draw'&&tex!=='dry')?CHECKRAISE:str==='medium'?CALL:FOLD;
-    const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;
-    const callA=itr?`${Math.round(bb*3)}bb`:`$${Math.round(bb*3)}`;
+    const {action:facingAction, ev, tex}=nlCorrectAction(cards[0],cards[1],board,'Flop','BB');
+    // Facing a bet: monster/strong = call or CR, medium = call, weak = fold
+    const correct=ev.strength==='monster'?CHECKRAISE:ev.strength==='strong'?(ev.dangerLevel>=2?CALL:CHECKRAISE):ev.strength==='medium'?CALL:FOLD;
+    const pot=itr?`${bb*6}bb`:`${Math.round(bb*6)}`;
+    const callA=itr?`${Math.round(bb*3)}bb`:`${Math.round(bb*3)}`;
     return{cards,heroPos:'BB',allPos,seats,board,street:'Flop',
       pfHist:`${op} opens, hero calls in BB. Flop: ${bStr(board)}. Hero checks. ${op} bets 50% pot.`,
       pot,callAmt:callA,blindStr,stackStr,correct,wrong:postWrong(correct,'facing'),
-      key:hkey(cards[0],cards[1]),tex,str,
-      rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${str} (${tex})`,
-      pfCtx:`Hero in BB vs ${op} open. Board: ${bStr(board)} (${tex}). Facing 50% pot c-bet. Pot: ${pot}.`,
+      key:hkey(cards[0],cards[1]),tex,str:ev.strength,
+      rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${ev.description} (${tex})`,
+      pfCtx:`Hero in BB with ${ev.description} on ${bStr(board)} (${tex}, danger ${ev.dangerLevel}/3). Facing 50% pot c-bet. Pot: ${pot}.`,
       label:`Flop: BB vs c-bet (${tex})`};
   }},
   {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
     const pos=rnd(['BTN','CO']);
     const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);
     const board=drawBoard(cards,4);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=(str==='monster'||str==='strong')?BET66:str==='draw'?BET50:CHECK;
-    const pot=itr?`${bb*14}bb`:`$${Math.round(bb*14)}`;
+    const {action:correct, ev, tex}=nlCorrectAction(cards[0],cards[1],board,'Turn',pos);
+    const pot=itr?`${bb*14}bb`:`${Math.round(bb*14)}`;
     return{cards,heroPos:pos,allPos,seats,board,street:'Turn',
       pfHist:`Hero opened ${pos}, BB called. C-bet flop called. Turn: ${bStr([board[3]])}. BB checks.`,
       pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'turn'),
-      key:hkey(cards[0],cards[1]),str,
-      rangeNote:`${hkey(cards[0],cards[1])} on turn — ${str}`,
-      pfCtx:`Hero in ${pos}. Flop: ${bStr(board.slice(0,3))}. Turn: ${bStr([board[3]])}. BB checks. Pot: ${pot}.`,
+      key:hkey(cards[0],cards[1]),str:ev.strength,
+      rangeNote:`${hkey(cards[0],cards[1])} on turn — ${ev.description} (danger:${ev.dangerLevel})`,
+      pfCtx:`Hero in ${pos} with ${ev.description}. Flop: ${bStr(board.slice(0,3))}. Turn: ${bStr([board[3]])}. Danger level ${ev.dangerLevel}/3. BB checks. Pot: ${pot}.`,
       label:'Turn: barrel or check IP'};
   }},
   {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
     const pos=rnd(['BTN','CO']);
     const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);
     const board=drawBoard(cards,5);
-    const str=nlStr(cards[0],cards[1],board.slice(0,3));
-    const correct=str==='monster'?BET100:str==='strong'?BET66:CHECK;
-    const pot=itr?`${bb*36}bb`:`$${Math.round(bb*36)}`;
+    const {action:correct, ev, tex}=nlCorrectAction(cards[0],cards[1],board,'River',pos);
+    const pot=itr?`${bb*36}bb`:`${Math.round(bb*36)}`;
     return{cards,heroPos:pos,allPos,seats,board,street:'River',
       pfHist:`3-bet pot. Hero c-bet flop and turn, both called. River: ${bStr([board[4]])}. Villain checks.`,
       pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'river'),
-      key:hkey(cards[0],cards[1]),str,
-      rangeNote:`${hkey(cards[0],cards[1])} — river hand strength: ${str}`,
-      pfCtx:`Hero in ${pos}. Board: ${bStr(board)}. Villain checks river. Pot: ${pot}.`,
+      key:hkey(cards[0],cards[1]),str:ev.strength,
+      rangeNote:`${hkey(cards[0],cards[1])} — ${ev.description} (danger:${ev.dangerLevel}, sdv:${ev.sdv})`,
+      pfCtx:`Hero in ${pos} with ${ev.description} on board ${bStr(board)}. Flush completed: ${ev.flushCompleted}. Board paired: ${ev.boardPaired}. Danger ${ev.dangerLevel}/3. Villain checks. Pot: ${pot}.`,
       label:'River: value bet or check IP'};
   }},
   {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){
@@ -482,32 +698,34 @@ const NLH_POST=[
     const suitedPool=new Set([...NLRFI[pos]||NLRFI.BTN].filter(k=>k.endsWith('s')));
     const cards=drawFrom(suitedPool);
     const board=drawBoard(cards,5);
-    const str=nlStr(cards[0],cards[1],board.slice(0,3));
+    const {action:correct, ev}=nlCorrectAction(cards[0],cards[1],board,'River',pos);
     const hasBlk=cards[0].rank==='A'||cards[1].rank==='A'||cards[0].rank==='K'||cards[1].rank==='K';
-    const correct=str==='weak'&&hasBlk?BET150:CHECK;
-    const pot=itr?`${bb*24}bb`:`$${Math.round(bb*24)}`;
+    // Override: bluff only if truly weak AND has blocker, else check
+    const finalCorrect = ev.sdv<=2 && hasBlk ? BET150 : CHECK;
+    const pot=itr?`${bb*24}bb`:`${Math.round(bb*24)}`;
     return{cards,heroPos:pos,allPos,seats,board,street:'River',
       pfHist:`Hero 3-bet from ${pos}, BB called. Bet flop, checked turn. River: ${bStr([board[4]])}. BB checks.`,
-      pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'bluff'),
-      key:hkey(cards[0],cards[1]),str,
-      rangeNote:`${hkey(cards[0],cards[1])} — ${hasBlk?'has A/K blocker':'no blocker'}`,
-      pfCtx:`Hero in ${pos}. Board: ${bStr(board)}. Missed draw. BB checks river. Pot: ${pot}.`,
+      pot,callAmt:'0',blindStr,stackStr,correct:finalCorrect,wrong:postWrong(finalCorrect,'bluff'),
+      key:hkey(cards[0],cards[1]),str:ev.strength,
+      rangeNote:`${hkey(cards[0],cards[1])} — ${ev.description} ${hasBlk?'has blocker':'no blocker'}`,
+      pfCtx:`Hero in ${pos} with ${ev.description} (sdv ${ev.sdv}/10). Board: ${bStr(board)}. ${hasBlk?'Has A/K blocker — bluff candidate.':'No blocker — give up.'} BB checks. Pot: ${pot}.`,
       label:'River: bluff spot'};
   }},
   {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){
     const cards=drawFrom(NLBBDEF);
     const board=drawBoard(cards,3);
-    const tex=boardTex(board);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=str==='draw'&&tex!=='dry'?CHECKRAISE:str==='monster'?CHECKRAISE:CALL;
-    const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;
-    const callA=itr?`${Math.round(bb*3)}bb`:`$${Math.round(bb*3)}`;
+    const {action:correct, ev, tex}=nlCorrectAction(cards[0],cards[1],board,'Flop','BB');
+    // Semi-bluff CR only with draw on wet board
+    const finalCorrect = ev.strength==='draw' && tex!=='dry' ? CHECKRAISE :
+                         ev.strength==='monster' ? CHECKRAISE : CALL;
+    const pot=itr?`${bb*6}bb`:`${Math.round(bb*6)}`;
+    const callA=itr?`${Math.round(bb*3)}bb`:`${Math.round(bb*3)}`;
     return{cards,heroPos:'BB',allPos,seats,board,street:'Flop',
       pfHist:`BTN opens, hero calls in BB. Flop: ${bStr(board)}. Hero checks. BTN bets 50% pot.`,
-      pot,callAmt:callA,blindStr,stackStr,correct,wrong:postWrong(correct,'semib'),
-      key:hkey(cards[0],cards[1]),tex,str,
-      rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${str} (${tex})`,
-      pfCtx:`Hero in BB. Board: ${bStr(board)} (${tex}). BTN bets 50% pot. Pot: ${pot}.`,
+      pot,callAmt:callA,blindStr,stackStr,correct:finalCorrect,wrong:postWrong(finalCorrect,'semib'),
+      key:hkey(cards[0],cards[1]),tex,str:ev.strength,
+      rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${ev.description} (${tex})`,
+      pfCtx:`Hero in BB with ${ev.description} on ${bStr(board)} (${tex} board, danger ${ev.dangerLevel}/3). BTN bets 50% pot. Pot: ${pot}.`,
       label:`Flop: semi-bluff check-raise OOP (${tex})`};
   }}
 ];

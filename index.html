@@ -1,141 +1,412 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upgrade Poker Coach</title>
-  <meta name="description" content="AI-powered poker training by Upgrade Poker."/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>"/>
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,-apple-system,sans-serif;background:#020617;color:#e2e8f0;min-height:100vh}
-    #api-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-    #root{display:none;min-height:100vh}
-    .gate-card{width:100%;max-width:440px;background:#0a0f1e;border:1px solid #1e293b;border-radius:18px;padding:32px}
-    .gate-card h1{font-size:22px;font-weight:700;color:#a78bfa;margin-bottom:4px}
-    .gate-card .sub{font-size:13px;color:#475569;margin-bottom:24px}
-    .gate-card label{font-size:12px;color:#64748b;display:block;margin-bottom:6px}
-    .gate-card input{width:100%;padding:10px 12px;border-radius:8px;background:#050d1a;border:1px solid #1e293b;color:#e2e8f0;font-size:14px;outline:none;margin-bottom:8px;font-family:monospace}
-    .gate-hint{font-size:11px;color:#334155;margin-bottom:16px;line-height:1.5}
-    .gate-hint a{color:#7dd3fc;text-decoration:none}
-    .btn-primary{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#5b21b6);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-    .error-msg{font-size:12px;color:#f87171;margin-bottom:12px}
-    .brand-tag{font-size:11px;color:#334155;margin-top:20px;text-align:center}
-    .brand-tag a{color:#475569;text-decoration:none}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Upgrade Poker Coach</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#000;color:#fff;min-height:100vh}
+#gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+#app{display:none;min-height:100vh;flex-direction:column}
+.card{background:#0a0a0a;border:1px solid #1a9a9a;border-radius:16px;padding:28px;width:100%;max-width:420px}
+.teal{color:#1a9a9a}
+.muted{color:#666}
+.btn{width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.btn:disabled{background:#222;color:#555;cursor:default}
+.btn-outline{background:transparent;border:1px solid #1a9a9a;color:#1a9a9a;border-radius:10px;padding:8px 16px;cursor:pointer;font-size:12px;font-weight:600}
+.inp{width:100%;padding:10px 12px;border-radius:8px;background:#111;border:1px solid #333;color:#fff;font-size:13px;outline:none;font-family:monospace}
+.inp:focus{border-color:#1a9a9a}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid #333}
+.seg button{padding:8px 16px;border:none;background:transparent;color:#666;font-size:12px;cursor:pointer;font-weight:500;white-space:nowrap;font-family:inherit}
+.seg button.active{background:#1a9a9a;color:#fff;font-weight:700}
+.cp-row{padding:14px 18px;border-bottom:1px solid #1a1a1a}
+.cp-label{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px}
+.stat-chip{flex:1;min-width:60px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a}
+.opt-btn{text-align:left;padding:11px 13px;border-radius:10px;background:#111;border:1px solid #222;color:#aaa;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;line-height:1.4;width:100%}
+.opt-btn.correct{background:rgba(74,222,128,0.1);border-color:#4ade80;color:#4ade80}
+.opt-btn.wrong{background:rgba(248,113,113,0.1);border-color:#f87171;color:#f87171}
+.opt-btn.dimmed{color:#333;border-color:#1a1a1a}
+select{padding:8px 10px;border-radius:8px;background:#111;border:1px solid #333;color:#aaa;font-size:12px;cursor:pointer;outline:none}
+</style>
 </head>
 <body>
 
-<div id="api-gate">
-  <div class="gate-card">
-    <div style="text-align:center;margin-bottom:20px">
-      <svg viewBox="0 0 100 110" width="64" height="70" xmlns="http://www.w3.org/2000/svg">
-        <!-- Upgrade Poker spade logo recreation in teal -->
-        <defs>
-          <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#0d6e6e"/>
-            <stop offset="50%" style="stop-color:#1a9a9a"/>
-            <stop offset="100%" style="stop-color:#0fa8a8"/>
-          </linearGradient>
-        </defs>
-        <path d="M50 5 C50 5, 5 40, 5 62 C5 78, 18 88, 32 84 C28 90, 22 98, 18 105 L82 105 C78 98, 72 90, 68 84 C82 88, 95 78, 95 62 C95 40, 50 5, 50 5Z" fill="url(#tealGrad)"/>
-        <path d="M50 30 C50 30, 25 50, 25 63 C25 72, 32 78, 40 75 L36 82 L64 82 L60 75 C68 78, 75 72, 75 63 C75 50, 50 30, 50 30Z" fill="#000" opacity="0.6"/>
-        <!-- Arrow up inside -->
-        <path d="M50 48 L44 58 L47 58 L47 70 L53 70 L53 58 L56 58 Z" fill="#1a9a9a" opacity="0.9"/>
-      </svg>
-    </div>
-    <h1 style="text-align:center">Upgrade Poker Coach</h1>
-    <p class="sub" style="text-align:center">AI-powered training by <a href="https://upgradepoker.com" style="color:#1a9a9a;text-decoration:none">upgradepoker.com</a></p>
-    <label for="api-input">Anthropic API Key</label>
-    <input type="password" id="api-input" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"/>
-    <p class="gate-hint">Your key is stored only in your browser and never sent anywhere except directly to Anthropic.<br/>
-    Don't have a key? <a href="https://console.anthropic.com" target="_blank">Get one free at console.anthropic.com</a></p>
-    <div id="gate-error" class="error-msg" style="display:none"></div>
-    <button class="btn-primary" onclick="handleGate()">Start Training</button>
-    <p class="brand-tag">&copy; <a href="https://upgradepoker.com">Upgrade Poker</a> &nbsp;·&nbsp; Powered by Claude AI</p>
+<!-- Gate -->
+<div id="gate">
+<div class="card">
+  <div style="text-align:center;margin-bottom:20px">
+    <svg viewBox="0 0 100 110" width="60" height="66" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d6e6e"/><stop offset="100%" stop-color="#1a9a9a"/></linearGradient></defs>
+      <path d="M50 5C50 5 5 40 5 62c0 16 13 26 27 22-4 6-10 14-14 21h64c-4-7-10-15-14-21 14 4 27-6 27-22C95 40 50 5 50 5z" fill="url(#g1)"/>
+      <path d="M50 48l-6 10h3v12h6V58h3z" fill="#1a9a9a" opacity="0.9"/>
+    </svg>
+    <div style="font-size:20px;font-weight:700;color:#1a9a9a;margin-top:8px">Upgrade Poker Coach</div>
+    <div style="font-size:12px;color:#555;margin-top:4px">by <a href="https://upgradepoker.com" style="color:#1a9a9a;text-decoration:none">upgradepoker.com</a></div>
   </div>
+  <label style="font-size:11px;color:#666;display:block;margin-bottom:6px">Anthropic API Key</label>
+  <input class="inp" type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off"/>
+  <p style="font-size:11px;color:#333;margin:8px 0 14px;line-height:1.5">Stored only in your browser. <a href="https://console.anthropic.com" target="_blank" style="color:#1a9a9a">Get a free key at console.anthropic.com</a></p>
+  <div id="gate-err" style="font-size:12px;color:#f87171;margin-bottom:10px;display:none"></div>
+  <button class="btn" onclick="startApp()">Start Training</button>
+  <p style="text-align:center;font-size:10px;color:#222;margin-top:16px">&copy; Upgrade Poker &middot; Powered by Claude AI</p>
+</div>
 </div>
 
-<div id="root"></div>
+<!-- App -->
+<div id="app">
 
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Top bar -->
+  <div style="background:#0a0a0a;border-bottom:1px solid #1a1a1a;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="avatar" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff"></div>
+      <div>
+        <div id="uname" style="font-size:13px;font-weight:700"></div>
+        <div style="font-size:10px;color:#555">Upgrade Poker Coach</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <div id="score-badge" style="background:rgba(26,154,154,0.1);border:1px solid #1a9a9a44;border-radius:14px;padding:3px 10px;font-size:11px;color:#1a9a9a;font-weight:600"></div>
+      <button class="btn-outline" onclick="showAnalytics()">Stats</button>
+      <button class="btn-outline" onclick="showHandAnalyzer()">Analyze Hand</button>
+      <button style="background:transparent;border:1px solid #222;border-radius:14px;padding:3px 10px;font-size:11px;color:#555;cursor:pointer" onclick="switchUser()">Switch</button>
+    </div>
+  </div>
+
+  <!-- Main tabs -->
+  <div style="display:flex;background:#0a0a0a;border-bottom:1px solid #1a1a1a">
+    <button id="tab-train" onclick="setTab('train')" style="flex:1;padding:11px;border:none;background:transparent;color:#1a9a9a;font-size:13px;font-weight:700;cursor:pointer;border-bottom:2px solid #1a9a9a;font-family:inherit">Training</button>
+    <button id="tab-tools" onclick="setTab('tools')" style="flex:1;padding:11px;border:none;background:transparent;color:#555;font-size:13px;font-weight:400;cursor:pointer;border-bottom:2px solid transparent;font-family:inherit">Tools</button>
+  </div>
+
+  <!-- Training panel -->
+  <div id="panel-train">
+    <!-- Controls -->
+    <div style="background:#0a0a0a;border-bottom:2px solid #1a1a1a">
+      <div class="cp-row">
+        <div class="cp-label">Game</div>
+        <div class="row">
+          <div class="seg">
+            <button id="seg-holdem" class="active" onclick="setVariant('holdem')">Hold'em</button>
+            <button id="seg-omaha" onclick="setVariant('omaha')">Omaha</button>
+            <button id="seg-mixed" onclick="setVariant('mixed')">Mixed</button>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:#666" id="po-label">Pot Odds</span>
+            <div onclick="togglePotOdds()" id="po-toggle" style="width:40px;height:22px;border-radius:11px;background:#222;border:1px solid #333;cursor:pointer;position:relative;transition:background 0.2s">
+              <div id="po-thumb" style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left 0.2s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cp-row">
+        <div class="cp-label">Format</div>
+        <div class="row">
+          <div class="seg">
+            <button id="seg-cash" class="active" onclick="setFormat('cash')">Cash</button>
+            <button id="seg-tourney" onclick="setFormat('tournament')">Tournament</button>
+          </div>
+          <span id="tourney-note" style="font-size:11px;color:#1a9a9a;display:none">ICM &middot; Bubble pressure</span>
+          <div style="margin-left:auto">
+            <button class="btn-outline" id="session-btn" onclick="startSession()">Session (10)</button>
+          </div>
+        </div>
+      </div>
+      <div class="cp-row">
+        <div class="cp-label">Focus</div>
+        <div class="row">
+          <button id="cat-preflop" onclick="setCat('preflop')" style="padding:8px 18px;border-radius:9px;border:1px solid #1a9a9a;background:#1a9a9a;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Preflop</button>
+          <button id="cat-postflop" onclick="setCat('postflop')" style="padding:8px 18px;border-radius:9px;border:1px solid #333;background:transparent;color:#666;font-size:12px;cursor:pointer;font-family:inherit">Postflop</button>
+          <button id="cat-bluffing" onclick="setCat('bluffing')" style="padding:8px 18px;border-radius:9px;border:1px solid #333;background:transparent;color:#666;font-size:12px;cursor:pointer;font-family:inherit">Bluffing</button>
+        </div>
+      </div>
+      <div class="cp-row" style="border-bottom:none">
+        <div class="cp-label">Settings</div>
+        <div class="row">
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px">
+            <span style="font-size:10px;color:#555">Difficulty</span>
+            <select id="sel-diff" onchange="state.difficulty=this.value">
+              <option>Beginner</option>
+              <option selected>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px">
+            <span style="font-size:10px;color:#555">Villain Type</span>
+            <select id="sel-villain" onchange="state.villain=this.value">
+              <option>Nit</option><option selected>TAG</option><option>LAG</option>
+              <option>Fish</option><option>Calling Station</option><option>Maniac</option><option>GTO Reg</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz area -->
+    <div id="quiz-area" style="padding:16px;max-width:700px;margin:0 auto;width:100%"></div>
+  </div>
+
+  <!-- Tools panel -->
+  <div id="panel-tools" style="display:none;flex:1;flex-direction:column">
+    <div style="display:flex;gap:4px;padding:10px 14px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;overflow-x:auto">
+      <button onclick="setTool('equity')" id="tool-equity" style="padding:6px 12px;border-radius:8px;border:none;background:#1a9a9a;color:#fff;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Equity Calc</button>
+      <button onclick="setTool('bankroll')" id="tool-bankroll" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#666;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Bankroll</button>
+      <button onclick="setTool('handlog')" id="tool-handlog" style="padding:6px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#666;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">Hand Log</button>
+    </div>
+    <div id="tool-area" style="padding:18px 16px;max-width:680px;margin:0 auto;width:100%"></div>
+  </div>
+
+</div>
+
+<!-- Overlay -->
+<div id="overlay" onclick="closeOverlay()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:100;align-items:center;justify-content:center;padding:16px;overflow-y:auto">
+  <div id="overlay-content" onclick="event.stopPropagation()" style="background:#0a0a0a;border:1px solid #1a9a9a44;border-radius:16px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;padding:22px"></div>
+</div>
 
 <script>
-// ── Gate ─────────────────────────────────────────────────────────
-function handleGate() {
-  var key = (document.getElementById("api-input").value || "").trim();
-  var err = document.getElementById("gate-error");
-  err.style.display = "none";
-  if (!key) { err.textContent = "Please enter your API key."; err.style.display = "block"; return; }
-  if (!key.startsWith("sk-ant-")) { err.textContent = "Invalid key — should start with sk-ant-"; err.style.display = "block"; return; }
-  localStorage.setItem("upc_api_key", key);
-  document.getElementById("api-gate").style.display = "none";
-  document.getElementById("root").style.display = "block";
-}
+// ── State ─────────────────────────────────────────────────────────
+const state = {
+  variant: 'holdem', format: 'cash', cat: 'preflop',
+  difficulty: 'Intermediate', villain: 'TAG',
+  showPotOdds: false, sessionMode: false, sessionCount: 0,
+  user: null, users: [],
+  quiz: null, selected: null, loading: false, streak: 0,
+  hintUsed: false, hint: null
+};
 
-window.addEventListener("DOMContentLoaded", function() {
-  var saved = localStorage.getItem("upc_api_key");
-  if (saved && saved.startsWith("sk-ant-")) {
-    document.getElementById("api-gate").style.display = "none";
-    document.getElementById("root").style.display = "block";
-  }
-  var inp = document.getElementById("api-input");
-  if (inp) inp.addEventListener("keydown", function(e) { if (e.key === "Enter") handleGate(); });
-});
+const RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+const SUITS = ['s','h','d','c'];
+const SUIT_SYM = {s:'♠',h:'♥',d:'♦',c:'♣'};
+const SUIT_COL = {s:'#1e293b',h:'#dc2626',d:'#dc2626',c:'#1e293b'};
+const POS8 = ['UTG','UTG+1','UTG+2','MP','HJ','CO','SB','BTN'];
 
-function getApiKey() { return localStorage.getItem("upc_api_key") || ""; }
-</script>
-
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
-
-const STREET_CATS = [{id:"preflop",label:"Preflop"},{id:"postflop",label:"Postflop"},{id:"bluffing",label:"Bluffing"}];
-const RANKS = ["2","3","4","5","6","7","8","9","T","J","Q","K","A"];
-const SUITS = ["s","h","d","c"];
-const SUIT_SYM = {s:"♠",h:"♥",d:"♦",c:"♣"};
-const SUIT_COL = {s:"#1e293b",h:"#dc2626",d:"#dc2626",c:"#1e293b"};
-const DIFFICULTIES = ["Beginner","Intermediate","Advanced"];
-const ARCHETYPES = ["Nit","TAG","LAG","Fish","Calling Station","Maniac","GTO Reg"];
-const POS8 = ["UTG","UTG+1","UTG+2","MP","HJ","CO","SB","BTN"];
-
-// ── Brand Colors ──────────────────────────────────────────────────
-const TEAL       = "#1a9a9a";
-const TEAL_DARK  = "#0d7a7a";
-const TEAL_DIM   = "#1a9a9a44";
-const BG         = "#000";
-const BG2        = "#0a0a0a";
-const BG3        = "#111";
-const BG4        = "#161616";
-const BORDER     = "#1e1e1e";
-const BORDER_T   = "#1a9a9a55";
-const MUTED      = "#555";
-const TEXT       = "#fff";
-const TEXT2      = "#aaa";
-const TEXT3      = "#666";
-const stor = {
+// ── Storage ───────────────────────────────────────────────────────
+const S = {
   get: k => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):null; } catch { return null; } },
   set: (k,v) => { try { localStorage.setItem(k,JSON.stringify(v)); } catch {} }
 };
-const loadUsers    = () => stor.get("upc:users") || [];
-const saveUsers    = u  => stor.set("upc:users", u);
-const loadProfile  = id => stor.get("upc:profile:"+id) || null;
-const saveProfile  = (id,d) => stor.set("upc:profile:"+id, d);
-const loadBankroll = id => stor.get("upc:bankroll:"+id) || [];
-const saveBankroll = (id,d) => stor.set("upc:bankroll:"+id, d);
-
-function emptyCats() { return {preflop:{q:0,c:0},postflop:{q:0,c:0},bluffing:{q:0,c:0}}; }
+function loadUsers() { return S.get('upc:users') || []; }
+function saveUsers(u) { S.set('upc:users', u); }
+function loadProfile(id) { return S.get('upc:p:'+id); }
+function saveProfile(id,d) { S.set('upc:p:'+id, d); }
 function emptyProfile(name) {
-  return { name, createdAt:Date.now(), lastSeen:Date.now(), sessions:0,
-    totalQ:0, totalCorrect:0,
-    byVariant:{ holdem:{totalQ:0,totalCorrect:0,cats:emptyCats()}, omaha:{totalQ:0,totalCorrect:0,cats:emptyCats()} },
-    cats:emptyCats(), history:[], streakBest:0, handLog:[] };
+  return { name, sessions:0, totalQ:0, totalCorrect:0,
+    cats:{preflop:{q:0,c:0},postflop:{q:0,c:0},bluffing:{q:0,c:0}},
+    history:[], streakBest:0, handLog:[] };
+}
+
+// ── API ───────────────────────────────────────────────────────────
+function getKey() { return localStorage.getItem('upc_api_key') || ''; }
+async function callClaude(sys, msg, maxTokens) {
+  const key = getKey();
+  if (!key) throw new Error('No API key. Please refresh and enter your key.');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:maxTokens||1200, system:sys, messages:[{role:'user',content:msg}] })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message + ' (' + data.error.type + ')');
+  return data.content.map(i=>i.text||'').join('');
+}
+
+// ── Gate ─────────────────────────────────────────────────────────
+function startApp() {
+  const key = (document.getElementById('api-key').value||'').trim();
+  const err = document.getElementById('gate-err');
+  err.style.display = 'none';
+  if (!key) { err.textContent='Please enter your API key.'; err.style.display='block'; return; }
+  if (!key.startsWith('sk-ant-')) { err.textContent='Invalid key — should start with sk-ant-'; err.style.display='block'; return; }
+  localStorage.setItem('upc_api_key', key);
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('upc_api_key');
+  if (saved && saved.startsWith('sk-ant-')) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initApp();
+  }
+  const inp = document.getElementById('api-key');
+  if (inp) inp.addEventListener('keydown', e => { if(e.key==='Enter') startApp(); });
+});
+
+// ── App init ──────────────────────────────────────────────────────
+function initApp() {
+  state.users = loadUsers();
+  if (state.users.length === 0) {
+    showUserSelect();
+  } else {
+    showUserSelect();
+  }
+}
+
+function showUserSelect() {
+  const users = state.users;
+  let html = `<div style="text-align:center;margin-bottom:24px">
+    <svg viewBox="0 0 100 110" width="56" height="62" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d6e6e"/><stop offset="100%" stop-color="#1a9a9a"/></linearGradient></defs>
+      <path d="M50 5C50 5 5 40 5 62c0 16 13 26 27 22-4 6-10 14-14 21h64c-4-7-10-15-14-21 14 4 27-6 27-22C95 40 50 5 50 5z" fill="url(#g2)"/>
+      <path d="M50 48l-6 10h3v12h6V58h3z" fill="#1a9a9a" opacity="0.9"/>
+    </svg>
+    <div style="font-size:20px;font-weight:700;color:#1a9a9a;margin-top:8px">Upgrade Poker Coach</div>
+    <div style="font-size:12px;color:#555;margin-top:4px">Select your profile</div>
+  </div>`;
+  users.forEach(u => {
+    const pct = u.totalQ ? Math.round((u.totalCorrect/u.totalQ)*100) : 0;
+    html += `<button onclick="selectUser('${u.id}')" style="width:100%;padding:12px 14px;border-radius:10px;background:#111;border:1px solid #222;color:#fff;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:8px;font-family:inherit">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${u.name[0].toUpperCase()}</div>
+      <div style="text-align:left;flex:1"><div style="font-size:13px;font-weight:600">${u.name}</div><div style="font-size:11px;color:#555">${u.totalQ||0} questions &middot; ${pct}%</div></div>
+      <div style="color:#333;font-size:16px">&#8250;</div>
+    </button>`;
+  });
+  html += `<button onclick="showAddUser()" style="width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0d7a7a,#1a9a9a);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">+ Add New Player</button>
+  <div style="text-align:center;margin-top:16px;font-size:10px;color:#222">&copy; Upgrade Poker &middot; Powered by Claude AI</div>`;
+
+  const oc = document.getElementById('overlay-content');
+  oc.innerHTML = html;
+  document.getElementById('overlay').style.display = 'flex';
+}
+
+function showAddUser() {
+  document.getElementById('overlay-content').innerHTML = `
+    <div style="font-size:16px;font-weight:700;color:#1a9a9a;margin-bottom:16px">Add Player</div>
+    <input class="inp" id="new-name" placeholder="Your name" style="margin-bottom:8px" onkeydown="if(event.key==='Enter')addUser()"/>
+    <div id="name-err" style="font-size:12px;color:#f87171;margin-bottom:8px;display:none"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="addUser()" class="btn">Create Profile</button>
+      <button onclick="showUserSelect()" style="padding:10px 14px;border-radius:8px;background:transparent;border:1px solid #333;color:#666;cursor:pointer;font-family:inherit">Back</button>
+    </div>`;
+  setTimeout(()=>document.getElementById('new-name').focus(),100);
+}
+
+function addUser() {
+  const name = (document.getElementById('new-name').value||'').trim();
+  const err = document.getElementById('name-err');
+  if (!name) { err.textContent='Enter a name'; err.style.display='block'; return; }
+  if (state.users.find(u=>u.name.toLowerCase()===name.toLowerCase())) { err.textContent='Name taken'; err.style.display='block'; return; }
+  const id = 'u_'+Date.now();
+  const profile = emptyProfile(name);
+  const meta = {id, name, totalQ:0, totalCorrect:0};
+  state.users.push(meta);
+  saveUsers(state.users);
+  saveProfile(id, profile);
+  selectUser(id);
+}
+
+function selectUser(id) {
+  let p = loadProfile(id);
+  if (!p) p = emptyProfile(state.users.find(u=>u.id===id)?.name||'Player');
+  p.sessions = (p.sessions||0)+1;
+  saveProfile(id, p);
+  state.user = {...p, id};
+  state.streak = 0;
+  closeOverlay();
+  updateTopBar();
+  fetchQuiz();
+}
+
+function switchUser() { showUserSelect(); }
+
+function updateTopBar() {
+  const p = state.user;
+  if (!p) return;
+  document.getElementById('avatar').textContent = p.name[0].toUpperCase();
+  document.getElementById('uname').textContent = p.name;
+  const tQ=p.totalQ||0, tC=p.totalCorrect||0;
+  const pct = tQ ? Math.round((tC/tQ)*100) : 0;
+  const col = pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
+  document.getElementById('score-badge').innerHTML = tC+'/'+tQ+' <span style="color:'+col+';">('+pct+'%)</span>';
+}
+
+function persistUser() {
+  const p = state.user;
+  saveProfile(p.id, p);
+  const nu = state.users.map(u=>u.id===p.id?{...u,totalQ:p.totalQ,totalCorrect:p.totalCorrect}:u);
+  state.users = nu;
+  saveUsers(nu);
+  updateTopBar();
+}
+
+// ── Controls ──────────────────────────────────────────────────────
+function setVariant(v) {
+  state.variant = v;
+  ['holdem','omaha','mixed'].forEach(x => {
+    const el = document.getElementById('seg-'+x);
+    if (el) el.className = x===v ? 'active' : '';
+  });
+  fetchQuiz();
+}
+function setFormat(f) {
+  state.format = f;
+  ['cash','tourney'].forEach(x => {
+    const el = document.getElementById('seg-'+x);
+    if (el) el.className = (x==='cash'&&f==='cash')||(x==='tourney'&&f==='tournament') ? 'active' : '';
+  });
+  const note = document.getElementById('tourney-note');
+  if (note) note.style.display = f==='tournament' ? 'inline' : 'none';
+  fetchQuiz();
+}
+function setCat(c) {
+  state.cat = c;
+  ['preflop','postflop','bluffing'].forEach(x => {
+    const el = document.getElementById('cat-'+x);
+    if (!el) return;
+    if (x===c) { el.style.background='#1a9a9a'; el.style.borderColor='#1a9a9a'; el.style.color='#fff'; el.style.fontWeight='700'; }
+    else { el.style.background='transparent'; el.style.borderColor='#333'; el.style.color='#666'; el.style.fontWeight='400'; }
+  });
+  fetchQuiz();
+}
+function togglePotOdds() {
+  state.showPotOdds = !state.showPotOdds;
+  const t = document.getElementById('po-toggle');
+  const th = document.getElementById('po-thumb');
+  const lb = document.getElementById('po-label');
+  if (t) t.style.background = state.showPotOdds ? '#1a9a9a' : '#222';
+  if (th) th.style.left = state.showPotOdds ? '22px' : '2px';
+  if (lb) lb.style.color = state.showPotOdds ? '#1a9a9a' : '#666';
+  renderQuiz();
+}
+function startSession() {
+  state.sessionMode = true;
+  state.sessionCount = 0;
+  state.sessionAnswers = [];
+  document.getElementById('session-btn').textContent = '0/10';
+  fetchQuiz();
+}
+function setTab(t) {
+  document.getElementById('panel-train').style.display = t==='train' ? 'block' : 'none';
+  document.getElementById('panel-tools').style.display = t==='tools' ? 'flex' : 'none';
+  document.getElementById('tab-train').style.color = t==='train' ? '#1a9a9a' : '#555';
+  document.getElementById('tab-train').style.fontWeight = t==='train' ? '700' : '400';
+  document.getElementById('tab-train').style.borderBottom = t==='train' ? '2px solid #1a9a9a' : '2px solid transparent';
+  document.getElementById('tab-tools').style.color = t==='tools' ? '#1a9a9a' : '#555';
+  document.getElementById('tab-tools').style.fontWeight = t==='tools' ? '700' : '400';
+  document.getElementById('tab-tools').style.borderBottom = t==='tools' ? '2px solid #1a9a9a' : '2px solid transparent';
+  if (t==='tools') setTool('equity');
+}
+function setTool(t) {
+  ['equity','bankroll','handlog'].forEach(x => {
+    const el = document.getElementById('tool-'+x);
+    if (el) { el.style.background = x===t ? '#1a9a9a' : 'rgba(255,255,255,0.05)'; el.style.color = x===t ? '#fff' : '#666'; }
+  });
+  const area = document.getElementById('tool-area');
+  if (t==='equity') area.innerHTML = renderEquityCalc();
+  if (t==='bankroll') area.innerHTML = renderBankroll();
+  if (t==='handlog') area.innerHTML = renderHandLog();
 }
 
 // ── Deck ──────────────────────────────────────────────────────────
 function shuffleDeck() {
-  const d = RANKS.flatMap(r => SUITS.map(s => ({rank:r,suit:s})));
+  const d = RANKS.flatMap(r=>SUITS.map(s=>({rank:r,suit:s})));
   for (let i=d.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
   return d;
 }
@@ -143,782 +414,525 @@ function classifyHand(c1,c2) {
   const r1=RANKS.indexOf(c1.rank),r2=RANKS.indexOf(c2.rank);
   const isPair=c1.rank===c2.rank,isSuited=c1.suit===c2.suit;
   const hi=Math.max(r1,r2),lo=Math.min(r1,r2),gap=hi-lo;
-  if(isPair&&hi>=10) return "premium pair JJ-AA";
-  if(isPair&&hi>=7)  return "medium pair 88-TT";
-  if(isPair)         return "small pair 22-77";
-  if(hi>=12&&lo>=11) return "premium broadway";
-  if(hi===12&&lo>=9&&isSuited) return "strong suited ace";
-  if(hi===12&&lo>=9) return "offsuit big ace";
-  if(hi===12)        return "weak ace - often fold";
-  if(gap<=1&&isSuited&&hi>=7) return "suited connector";
-  if(gap<=3&&isSuited) return "suited gapper";
-  if(hi>=10&&lo>=9)  return "offsuit broadway";
-  if(hi<=5)          return "trash - correct answer is fold";
-  return "marginal hand";
+  if(isPair&&hi>=10) return 'premium pair JJ-AA';
+  if(isPair&&hi>=7) return 'medium pair 88-TT';
+  if(isPair) return 'small pair 22-77';
+  if(hi>=12&&lo>=11) return 'premium broadway';
+  if(hi===12&&lo>=9&&isSuited) return 'strong suited ace';
+  if(hi===12&&lo>=9) return 'offsuit big ace';
+  if(hi===12) return 'weak ace - often fold';
+  if(gap<=1&&isSuited&&hi>=7) return 'suited connector';
+  if(gap<=3&&isSuited) return 'suited gapper';
+  if(hi>=10&&lo>=9) return 'offsuit broadway';
+  if(hi<=5) return 'trash - fold is correct';
+  return 'marginal hand';
 }
 
-// ── API ───────────────────────────────────────────────────────────
-async function callClaude(system, userMsg, maxTokens=1200) {
-  const key = getApiKey();
-  if (!key) throw new Error("No API key. Please refresh and enter your key.");
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": key,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:maxTokens, system, messages:[{role:"user",content:userMsg}] })
+// ── Fetch quiz ────────────────────────────────────────────────────
+const recentHands = [];
+async function fetchQuiz() {
+  if (!state.user) return;
+  state.loading = true; state.quiz = null; state.selected = null;
+  state.hintUsed = false; state.hint = null;
+  renderQuiz();
+
+  try {
+    const deck = shuffleDeck();
+    const isOmaha = state.variant==='mixed' ? Math.random()>0.5 : state.variant==='omaha';
+    const vName = isOmaha ? 'Omaha' : 'Texas Holdem';
+    const cards = isOmaha ? deck.slice(0,4) : deck.slice(0,2);
+    const board = deck.slice(isOmaha?4:2, isOmaha?9:7);
+    const tier = classifyHand(cards[0], cards[1]);
+    const holeStr = cards.map(c=>c.rank+c.suit).join(' ');
+    const boardStr = board.map(c=>c.rank+c.suit).join(' ');
+    const isTourney = state.format==='tournament';
+    const seats = [6,7,8,8,8][Math.floor(Math.random()*5)];
+    const stack = [50,100,150,200,300,500][Math.floor(Math.random()*6)];
+    const positions = POS8.slice(0, seats);
+    const heroPos = positions[Math.floor(Math.random()*positions.length)];
+    const stackArr = [stack,stack+20,stack-15,stack+40,stack-10,stack+60,stack+10,stack-5].slice(0,seats).map(v=>'$'+Math.max(10,v));
+    const dealerSeat = Math.floor(Math.random()*seats);
+    const streetMap = {preflop:['Preflop'],postflop:['Flop','Turn','River'],bluffing:['Flop','Turn','River']};
+    const streetOpts = streetMap[state.cat]||['Preflop'];
+    const street = streetOpts[Math.floor(Math.random()*streetOpts.length)];
+    const hintMap = {
+      preflop:['multiway pot','3-bet pot','squeeze spot','blind vs blind','vs 3-bettor','open from EP'],
+      postflop:['c-bet dry board','check-raise wet board','thin value river','bluff-catcher river','triple barrel'],
+      bluffing:['river bluff','semi-bluff with equity','overbet bluff','blocking bet','check-raise bluff']
+    };
+    const sh = hintMap[state.cat][Math.floor(Math.random()*hintMap[state.cat].length)];
+    const diffMap = {
+      Beginner:'BEGINNER: Clear best action. Wrong answers obviously bad. No tricky spots.',
+      Intermediate:'INTERMEDIATE: Genuinely difficult decision. Wrong answers plausible but incorrect.',
+      Advanced:'ADVANCED: Solver-level. Counter-intuitive answer. All options seem reasonable.'
+    };
+    const legalNote = 'LEGAL ACTIONS: If SB limps into BB, options are Check or Raise ONLY (no fold, no call). If facing raise: Fold/Call/Raise. If first to act preflop: Fold/Limp/Raise. If checked to: Check/Bet. NEVER include illegal actions.';
+    const recent = recentHands.slice(-5).join(', ');
+
+    const sys = `Expert poker coach. Game: ${vName}. Format: ${isTourney?'Tournament (ICM, bubble)':'Cash Game'}. Villain: ${state.villain}. ${diffMap[state.difficulty]||diffMap.Intermediate} ${legalNote} Hero is in position ${heroPos} at a ${seats}-handed table. Positions: ${positions.join(', ')}. Use EXACT hole cards ${holeStr}. Do not change them. heroPosition in JSON MUST be "${heroPos}". Respond ONLY with valid JSON no markdown: {"variant":"${vName}","gameType":"${isTourney?'Tournament':'Cash Game'}","street":"${street}","heroPosition":"${heroPos}","numSeats":${seats},"dealerSeat":${dealerSeat},"allPositions":${JSON.stringify(positions)},"stackSizes":${JSON.stringify(stackArr)},"bets":{},"potDisplay":"$0","blinds":"${isTourney?'100/200':'1/2'}","holeCards":${JSON.stringify(cards.map(c=>({rank:c.rank,suit:c.suit})))},"communityCards":[],"showCommunity":false,"scenario":"2-3 sentences. Hero is in ${heroPos}. Describe action before hero clearly.","question":"What is the best action?","options":["A","B","C","D"],"correctIndex":0,"explanation":"3-4 sentences why correct.","hintText":"One hint without revealing answer.","potOdds":{"potSize":"$0","callAmount":"$0","oddsRatio":"X:1","breakEvenPct":"0%","impliedOdds":"note","recommendation":"call or fold"}}`;
+    const prompt = `${state.cat} ${isTourney?'tournament':'cash'} scenario. ${vName}. Hero: ${heroPos}, ${seats}-handed. EXACT cards: ${holeStr} (${tier}). Board seed: ${boardStr}. Stack: $${stack}. Type: ${sh}.${recent?' Avoid: '+recent:''}`;
+
+    const txt = await callClaude(sys, prompt, 1400);
+    const parsed = JSON.parse(txt.replace(/```json|```/g,'').trim());
+    recentHands.push(cards.map(c=>c.rank+c.suit).join(''));
+    if (recentHands.length > 10) recentHands.shift();
+    state.quiz = parsed;
+  } catch(e) {
+    state.quiz = {error: true, msg: e.message||'Unknown error'};
+  }
+
+  state.loading = false;
+  renderQuiz();
+}
+
+// ── Render quiz ───────────────────────────────────────────────────
+function cardHTML(rank, suit, size) {
+  size = size||1;
+  const w=Math.round(38*size), h=Math.round(54*size);
+  const fs1=Math.round(12*size), fs2=Math.round(16*size);
+  const col=SUIT_COL[suit]||'#1e293b', sym=SUIT_SYM[suit]||suit;
+  return `<div style="width:${w}px;height:${h}px;border-radius:${Math.round(5*size)}px;background:#fff;border:1.5px solid #94a3b8;display:inline-flex;flex-direction:column;padding:2px 3px;box-sizing:border-box;position:relative;box-shadow:0 1px 4px rgba(0,0,0,0.4);vertical-align:top">
+    <span style="font-size:${fs1}px;font-weight:800;color:${col};line-height:1;font-family:Georgia,serif">${rank}</span>
+    <span style="font-size:${fs2}px;color:${col};line-height:1;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">${sym}</span>
+    <span style="font-size:${fs1}px;font-weight:800;color:${col};line-height:1;position:absolute;bottom:2px;right:3px;transform:rotate(180deg);font-family:Georgia,serif">${rank}</span>
+  </div>`;
+}
+
+function tableHTML(quiz) {
+  const seats = quiz.numSeats||8, cx=300, cy=150, rx=220, ry=110, hero=seats-1;
+  const pos = quiz.allPositions||POS8.slice(0,seats);
+  let inner = `<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx+12}" ry="${ry+12}" fill="#1a4a2e"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx-4}" ry="${ry-4}" fill="#2d7a4a"/>`;
+  if (quiz.potDisplay) {
+    inner += `<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
+      <text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="600" font-family="monospace">POT</text>
+      <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
+  }
+  for (let i=0;i<seats;i++) {
+    const a=(2*Math.PI*i/seats)-Math.PI/2;
+    const x=Math.round(cx+(rx+28)*Math.cos(a)), y=Math.round(cy+(ry+38)*Math.sin(a));
+    const isHero=i===hero, isDealer=quiz.dealerSeat===i;
+    inner += `<circle cx="${x}" cy="${y}" r="${isHero?26:20}" fill="${isHero?'#1e3a5f':'#0f172a'}" stroke="${isHero?'#1a9a9a':'#334155'}" stroke-width="${isHero?2:1.5}"/>`;
+    if (isDealer) inner += `<circle cx="${x+16}" cy="${y-16}" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1"/><text x="${x+16}" y="${y-12}" text-anchor="middle" fill="#1c1917" font-size="8" font-weight="700">D</text>`;
+    inner += `<text x="${x}" y="${y+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#94a3b8'}" font-size="${isHero?9:8}" font-weight="600">${pos[i]||''}</text>`;
+    if (quiz.stackSizes?.[i]) inner += `<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle" fill="#86efac" font-size="8" font-family="monospace">${quiz.stackSizes[i]}</text>`;
+    if (isHero) inner += `<text x="${x}" y="${y+52}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+  }
+  return `<div style="max-width:600px;margin:0 auto"><svg viewBox="0 0 600 300" style="width:100%;overflow:visible">${inner}</svg></div>`;
+}
+
+function renderQuiz() {
+  const area = document.getElementById('quiz-area');
+  if (!area) return;
+
+  if (state.loading) {
+    area.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;gap:14px">
+      <div style="font-size:40px;color:#1a9a9a;animation:spin 1.2s linear infinite;display:inline-block">&#9824;</div>
+      <div style="color:#555;font-size:13px">Shuffling scenario...</div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>`;
+    return;
+  }
+
+  const q = state.quiz;
+  if (!q) return;
+
+  if (q.error) {
+    area.innerHTML = `<div style="text-align:center;padding:40px">
+      <div style="color:#f87171;font-size:14px;margin-bottom:8px">Failed to load scenario</div>
+      <div style="color:#555;font-size:12px;margin-bottom:16px;word-break:break-word">${q.msg||''}</div>
+      <button class="btn-outline" onclick="fetchQuiz()">Retry</button>
+    </div>`;
+    return;
+  }
+
+  // Meta chips
+  let html = `<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">`;
+  [q.variant,q.gameType,q.street,'Pos: '+(q.heroPosition||'—'),'vs '+state.villain,state.difficulty].forEach((t,i) => {
+    html += `<span style="font-size:10px;padding:3px 8px;border-radius:8px;background:${i===0?'rgba(26,154,154,0.2)':'rgba(255,255,255,0.04)'};color:${i===0?'#1a9a9a':'#666'};border:1px solid ${i===0?'#1a9a9a44':'#1a1a1a'};font-weight:600">${t}</span>`;
   });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message + " ("+data.error.type+")");
-  if (!data.content) throw new Error("Unexpected response: " + JSON.stringify(data).slice(0,100));
-  return data.content.map(i=>i.text||"").join("");
-}
+  html += `</div>`;
 
-// ── UI Primitives ─────────────────────────────────────────────────
-function Toggle({on,onChange,label}) {
-  return (
-    <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>onChange(!on)}>
-      <div style={{width:44,height:26,borderRadius:13,background:on?"#f59e0b":"#1e293b",border:"1px solid "+(on?"#d97706":"#334155"),position:"relative",transition:"all 0.2s",flexShrink:0}}>
-        <div style={{position:"absolute",top:3,left:on?21:3,width:18,height:18,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
-      </div>
-      {label&&<span style={{fontSize:13,color:on?"#fbbf24":"#64748b",fontWeight:600,userSelect:"none"}}>{label}</span>}
-    </div>
-  );
-}
+  // Table
+  html += `<div style="background:#0a0a0a;border-radius:12px;border:1px solid #1a1a1a;padding:12px 6px 6px;margin-bottom:12px">${tableHTML(q)}`;
+  if (q.holeCards?.length) {
+    html += `<div style="display:flex;justify-content:center;gap:8px;margin-top:-10px">`;
+    q.holeCards.forEach(c => { html += cardHTML(c.rank, c.suit, 1.15); });
+    html += `</div>`;
+  }
+  html += `</div>`;
 
-function SegControl({options,value,onChange,color="#7c3aed"}) {
-  return (
-    <div style={{display:"inline-flex",borderRadius:10,overflow:"hidden",border:"1px solid #334155",flexShrink:0}}>
-      {options.map((o,i)=>{
-        const v=typeof o==="object"?o.value:o, l=typeof o==="object"?o.label:o, active=value===v;
-        return <button key={v} onClick={()=>onChange(v)} style={{padding:"10px 20px",border:"none",borderRight:i<options.length-1?"1px solid #334155":"none",background:active?color:"transparent",color:active?"#fff":"#64748b",fontSize:13,fontWeight:active?700:400,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap"}}>{l}</button>;
-      })}
-    </div>
-  );
-}
+  // Stats strip
+  html += `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">`;
+  [{l:'Street',v:q.street,c:'#1a9a9a'},{l:'Pos',v:q.heroPosition||'—',c:'#fff'},{l:'Pot',v:q.potDisplay||'—',c:'#facc15'},{l:'Blinds',v:q.blinds||'1/2',c:'#4ade80'}].forEach(s => {
+    html += `<div style="flex:1;min-width:60px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a">
+      <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div>
+      <div style="font-size:13px;font-weight:700;color:${s.c}">${s.v}</div>
+    </div>`;
+  });
+  html += `</div>`;
 
-function CPRow({label,children,noBorder=false}) {
-  return (
-    <div style={{padding:"16px 20px",borderBottom:noBorder?"none":"1px solid #1e293b"}}>
-      <div style={{fontSize:11,fontWeight:700,color:"#475569",textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>{label}</div>
-      {children}
-    </div>
-  );
-}
+  // Scenario
+  html += `<div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:11px 14px;font-size:13px;color:#aaa;line-height:1.7;margin-bottom:12px">${q.scenario}</div>`;
+  html += `<div style="font-size:15px;font-weight:700;color:#fff;line-height:1.5;margin-bottom:12px">${q.question}</div>`;
 
-// ── Card ──────────────────────────────────────────────────────────
-function Card({rank,suit,size=1}) {
-  const w=38*size,h=54*size,col=SUIT_COL[suit]||"#1e293b",sym=SUIT_SYM[suit]||suit;
-  return (
-    <div style={{width:w,height:h,borderRadius:5*size,background:"#fff",border:"1.5px solid #94a3b8",display:"flex",flexDirection:"column",padding:`${2*size}px ${3*size}px`,boxSizing:"border-box",position:"relative",boxShadow:"0 1px 4px rgba(0,0,0,0.4)"}}>
-      <span style={{fontSize:12*size,fontWeight:800,color:col,lineHeight:1,fontFamily:"Georgia,serif"}}>{rank}</span>
-      <span style={{fontSize:16*size,color:col,lineHeight:1,position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)"}}>{sym}</span>
-      <span style={{fontSize:12*size,fontWeight:800,color:col,lineHeight:1,position:"absolute",bottom:2*size,right:3*size,transform:"rotate(180deg)",fontFamily:"Georgia,serif"}}>{rank}</span>
-    </div>
-  );
-}
-
-// ── Poker Table ───────────────────────────────────────────────────
-function PokerTable({quiz,numSeats=8}) {
-  const cx=300,cy=150,rx=220,ry=110,hero=numSeats-1;
-  const pos=quiz?.allPositions||POS8.slice(0,numSeats);
-  return (
-    <div style={{width:"100%",maxWidth:600,margin:"0 auto"}}>
-      <svg viewBox="0 0 600 300" style={{width:"100%",overflow:"visible"}}>
-        <ellipse cx={cx} cy={cy+8} rx={rx+10} ry={ry+10} fill="rgba(0,0,0,0.35)"/>
-        <ellipse cx={cx} cy={cy} rx={rx+12} ry={ry+12} fill="#1a4a2e"/>
-        <ellipse cx={cx} cy={cy} rx={rx+6} ry={ry+6} fill="#1e5c38"/>
-        <ellipse cx={cx} cy={cy} rx={rx-4} ry={ry-4} fill="#2d7a4a"/>
-        <ellipse cx={cx} cy={cy} rx={rx-20} ry={ry-20} fill="none" stroke="#338a52" strokeWidth="1" strokeDasharray="4 6" opacity="0.4"/>
-        {quiz?.potDisplay&&<><rect x={cx-46} y={cy-16} width={92} height={32} rx={8} fill="rgba(0,0,0,0.35)"/><text x={cx} y={cy-2} textAnchor="middle" fill="#fcd34d" fontSize={10} fontWeight={600} fontFamily="monospace">POT</text><text x={cx} y={cy+13} textAnchor="middle" fill="#fef3c7" fontSize={13} fontWeight={700} fontFamily="monospace">{quiz.potDisplay}</text></>}
-        {quiz?.showCommunity&&quiz?.communityCards?.length>0&&(
-          <foreignObject x={cx-110} y={cy-28} width={220} height={56}>
-            <div xmlns="http://www.w3.org/1999/xhtml" style={{display:"flex",gap:3,justifyContent:"center",alignItems:"center",paddingTop:4}}>
-              {quiz.communityCards.map((c,i)=><Card key={i} rank={c.rank} suit={c.suit} size={0.72}/>)}
-            </div>
-          </foreignObject>
-        )}
-        {Array(numSeats).fill(0).map((_,i)=>{
-          const a=(2*Math.PI*i/numSeats)-Math.PI/2;
-          const x=cx+(rx+28)*Math.cos(a),y=cy+(ry+38)*Math.sin(a);
-          const isHero=i===hero,isDealer=quiz?.dealerSeat===i;
-          return (
-            <g key={i}>
-              <circle cx={x} cy={y} r={isHero?26:20} fill={isHero?"#1e3a5f":"#0f172a"} stroke={isHero?"#60a5fa":"#334155"} strokeWidth={isHero?2:1.5}/>
-              {isDealer&&<><circle cx={x+16} cy={y-16} r={8} fill="#fbbf24" stroke="#92400e" strokeWidth={1}/><text x={x+16} y={y-12} textAnchor="middle" fill="#1c1917" fontSize={8} fontWeight={700}>D</text></>}
-              <text x={x} y={y+4} textAnchor="middle" fill={isHero?"#93c5fd":"#94a3b8"} fontSize={isHero?9:8} fontWeight={600}>{pos[i]}</text>
-              {quiz?.stackSizes?.[i]&&<text x={x} y={y+(isHero?40:34)} textAnchor="middle" fill="#86efac" fontSize={8} fontFamily="monospace">{quiz.stackSizes[i]}</text>}
-              {quiz?.bets?.[i]&&<g><circle cx={x+(x<cx?18:-18)} cy={y+(y<cy?18:-18)} r={10} fill="#e11d48" stroke="#fff" strokeWidth={1}/><text x={x+(x<cx?18:-18)} y={y+(y<cy?18:-18)+3} textAnchor="middle" fill="white" fontSize={7} fontWeight={700}>{quiz.bets[i]}</text></g>}
-              {isHero&&<text x={x} y={y+52} textAnchor="middle" fill="#60a5fa" fontSize={8} fontWeight={700}>YOU</text>}
-            </g>
-          );
-        })}
-      </svg>
-      {quiz?.holeCards?.length>0&&<div style={{display:"flex",justifyContent:"center",gap:8,marginTop:-10}}>{quiz.holeCards.map((c,i)=><Card key={i} rank={c.rank} suit={c.suit} size={1.15}/>)}</div>}
-    </div>
-  );
-}
-
-// ── Equity Calc ───────────────────────────────────────────────────
-function EquityCalc() {
-  const [h1,setH1]=useState("Ah Kd");const [h2,setH2]=useState("Qh Qc");const [board,setBoard]=useState("");const [result,setResult]=useState(null);const [loading,setLoading]=useState(false);
-  const inp={width:"100%",padding:"9px 12px",borderRadius:8,background:"#050d1a",border:"1px solid #1e293b",color:"#e2e8f0",fontSize:13,boxSizing:"border-box",fontFamily:"monospace",outline:"none"};
-  async function calc(){setLoading(true);setResult(null);try{const t=await callClaude(`Poker equity calculator. Respond ONLY valid JSON: {"hand1":{"cards":"Ah Kd","equity":47.3,"description":"AK high"},"hand2":{"cards":"Qh Qc","equity":52.7,"description":"Overpair"},"ties":0.5,"analysis":"2-3 sentences."}`,`Hand 1: ${h1}\nHand 2: ${h2}\nBoard: ${board||"none"}`);setResult(JSON.parse(t.replace(/```json|```/g,"").trim()));}catch{setResult({error:true});}setLoading(false);}
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-        <div><div style={{fontSize:11,color:"#64748b",marginBottom:4}}>Hand 1</div><input value={h1} onChange={e=>setH1(e.target.value)} placeholder="Ah Kd" style={inp}/></div>
-        <div><div style={{fontSize:11,color:"#64748b",marginBottom:4}}>Hand 2</div><input value={h2} onChange={e=>setH2(e.target.value)} placeholder="Qh Qc" style={inp}/></div>
-      </div>
-      <div><div style={{fontSize:11,color:"#64748b",marginBottom:4}}>Board (optional)</div><input value={board} onChange={e=>setBoard(e.target.value)} placeholder="Kc 7h 2d" style={inp}/></div>
-      <button onClick={calc} disabled={loading} style={{padding:"11px",borderRadius:10,background:"linear-gradient(135deg,#7c3aed,#5b21b6)",border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>{loading?"Calculating...":"Calculate Equity"}</button>
-      {result?.error&&<div style={{color:"#f87171",fontSize:13}}>Failed. Try again.</div>}
-      {result&&!result.error&&<div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {[{h:result.hand1,col:"#7dd3fc"},{h:result.hand2,col:"#f9a8d4"}].map((item,i)=>(
-          <div key={i} style={{background:"rgba(255,255,255,0.04)",borderRadius:10,padding:"12px 14px",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}><span style={{fontSize:13,fontFamily:"monospace",color:item.col,fontWeight:700}}>{item.h.cards}</span><span style={{fontSize:20,fontWeight:800,color:item.h.equity>=50?"#22c55e":"#f87171"}}>{item.h.equity}%</span></div>
-            <div style={{height:6,background:"rgba(255,255,255,0.06)",borderRadius:3,overflow:"hidden"}}><div style={{width:item.h.equity+"%",height:"100%",background:item.h.equity>=50?"#22c55e":"#f87171",borderRadius:3}}/></div>
-            <div style={{fontSize:11,color:"#64748b",marginTop:6}}>{item.h.description}</div>
-          </div>
-        ))}
-        <div style={{background:"rgba(167,139,250,0.06)",borderRadius:10,padding:"12px",border:"1px solid rgba(167,139,250,0.15)",fontSize:12,color:"#c4b5fd",lineHeight:1.7}}>{result.analysis}</div>
-      </div>}
-    </div>
-  );
-}
-
-// ── Range Chart ───────────────────────────────────────────────────
-function RangeChart() {
-  const premium=new Set(["AA","KK","QQ","JJ","AKs","AKo"]);
-  const strong=new Set(["TT","99","AQs","AQo","AJs","KQs","ATs","KJs","QJs"]);
-  const spec=new Set(["88","77","66","55","44","33","22","A9s","A8s","A7s","A6s","A5s","A4s","A3s","A2s","KTs","QTs","JTs","T9s","98s","87s","76s","65s","54s","KQo","KJo","QJo","JTo"]);
-  const cols={premium:"#22c55e",strong:"#f59e0b",speculative:"#3b82f6",fold:"rgba(255,255,255,0.04)"};
-  const tc={premium:"#86efac",strong:"#fcd34d",speculative:"#93c5fd",fold:"#334155"};
-  const rev=[...RANKS].reverse();
-  return (
-    <div style={{overflowX:"auto"}}>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:10}}>
-        {Object.entries(cols).map(([k,v])=><span key={k} style={{display:"flex",alignItems:"center",gap:4,fontSize:11}}><span style={{width:10,height:10,borderRadius:2,background:v,display:"inline-block"}}></span><span style={{color:"#94a3b8",textTransform:"capitalize"}}>{k}</span></span>)}
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(13,1fr)",gap:2,minWidth:400}}>
-        {rev.map(r1=>rev.map(r2=>{
-          const i=RANKS.indexOf(r1),j=RANKS.indexOf(r2);
-          const lbl=i===j?r1+r2:i>j?r1+r2+"s":r1+r2+"o";
-          const tier=premium.has(lbl)?"premium":strong.has(lbl)?"strong":spec.has(lbl)?"speculative":"fold";
-          return <div key={lbl} title={lbl} style={{aspectRatio:"1",background:cols[tier],borderRadius:2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:6,color:tc[tier],fontWeight:600}}>{lbl.slice(0,3)}</div>;
-        }))}
-      </div>
-      <div style={{fontSize:11,color:"#475569",marginTop:8}}>BTN open-raise range (8-max cash)</div>
-    </div>
-  );
-}
-
-// ── Bankroll ──────────────────────────────────────────────────────
-function BankrollTracker({userId}) {
-  const [sessions,setSessions]=useState(()=>loadBankroll(userId));
-  const [form,setForm]=useState({date:new Date().toISOString().slice(0,10),game:"",buyin:"",cashout:"",notes:""});
-  function add(){if(!form.buyin||!form.cashout)return;const s={id:Date.now(),...form,buyin:parseFloat(form.buyin),cashout:parseFloat(form.cashout),profit:parseFloat(form.cashout)-parseFloat(form.buyin)};const u=[...sessions,s].sort((a,b)=>new Date(a.date)-new Date(b.date));setSessions(u);saveBankroll(userId,u);setForm({date:new Date().toISOString().slice(0,10),game:"",buyin:"",cashout:"",notes:""});}
-  function del(id){const u=sessions.filter(s=>s.id!==id);setSessions(u);saveBankroll(userId,u);}
-  const total=sessions.reduce((a,s)=>a+s.profit,0);
-  const inp={width:"100%",padding:"8px 10px",borderRadius:8,background:"#050d1a",border:"1px solid #1e293b",color:"#e2e8f0",fontSize:12,boxSizing:"border-box",outline:"none",fontFamily:"inherit"};
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-        {[{l:"Profit",v:(total>=0?"+":"")+total.toFixed(2),c:total>=0?"#22c55e":"#f87171"},{l:"Sessions",v:sessions.length,c:"#67e8f9"},{l:"Win Rate",v:sessions.length?Math.round((sessions.filter(s=>s.profit>0).length/sessions.length)*100)+"%":"—",c:"#fbbf24"}].map(s=>(
-          <div key={s.l} style={{background:"rgba(255,255,255,0.04)",borderRadius:10,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.06)"}}>
-            <div style={{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:0.8,marginBottom:3}}>{s.l}</div>
-            <div style={{fontSize:18,fontWeight:700,color:s.c}}>{s.v}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"12px",border:"1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{fontSize:11,color:"#64748b",fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:0.8}}>Log Session</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-          <div><div style={{fontSize:10,color:"#475569",marginBottom:3}}>Date</div><input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))} style={inp}/></div>
-          <div><div style={{fontSize:10,color:"#475569",marginBottom:3}}>Game</div><input value={form.game} onChange={e=>setForm(f=>({...f,game:e.target.value}))} placeholder="1/2 NL" style={inp}/></div>
-          <div><div style={{fontSize:10,color:"#475569",marginBottom:3}}>Buy-in ($)</div><input type="number" value={form.buyin} onChange={e=>setForm(f=>({...f,buyin:e.target.value}))} placeholder="200" style={inp}/></div>
-          <div><div style={{fontSize:10,color:"#475569",marginBottom:3}}>Cash-out ($)</div><input type="number" value={form.cashout} onChange={e=>setForm(f=>({...f,cashout:e.target.value}))} placeholder="350" style={inp}/></div>
+  // Pot odds panel
+  if (q.potOdds) {
+    const po = q.potOdds;
+    html += `<div style="border-radius:10px;border:1px solid ${state.showPotOdds?'#1a9a9a':'#1a1a1a'};background:${state.showPotOdds?'rgba(26,154,154,0.07)':'#111'};padding:11px 13px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;${state.showPotOdds?'margin-bottom:10px':''}">
+        <span style="font-size:10px;color:${state.showPotOdds?'#1a9a9a':'#444'};font-weight:700;text-transform:uppercase;letter-spacing:0.8px">Pot Odds — ${state.showPotOdds?'Revealed':'Hidden'}</span>
+        <div onclick="togglePotOdds()" style="width:36px;height:20px;border-radius:10px;background:${state.showPotOdds?'#1a9a9a':'#222'};border:1px solid ${state.showPotOdds?'#1a9a9a':'#333'};cursor:pointer;position:relative">
+          <div style="position:absolute;top:2px;left:${state.showPotOdds?'18px':'2px'};width:14px;height:14px;border-radius:50%;background:#fff"></div>
         </div>
-        <input value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="Notes..." style={{...inp,marginBottom:8}}/>
-        <button onClick={add} style={{width:"100%",padding:"9px",borderRadius:8,background:"#7c3aed",border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>Add Session</button>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:220,overflowY:"auto"}}>
-        {[...sessions].reverse().map(s=>(
-          <div key={s.id} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"8px 12px",border:"1px solid rgba(255,255,255,0.06)"}}>
-            <div style={{flex:1}}><div style={{fontSize:12,color:"#e2e8f0",fontWeight:600}}>{s.date}{s.game&&<span style={{color:"#64748b"}}> · {s.game}</span>}</div>{s.notes&&<div style={{fontSize:11,color:"#475569"}}>{s.notes}</div>}</div>
-            <div style={{fontSize:13,fontWeight:700,color:s.profit>=0?"#22c55e":"#f87171"}}>{s.profit>=0?"+":""}{s.profit.toFixed(2)}</div>
-            <button onClick={()=>del(s.id)} style={{background:"none",border:"none",color:"#334155",cursor:"pointer",fontSize:16,lineHeight:1}}>×</button>
-          </div>
-        ))}
-        {sessions.length===0&&<div style={{fontSize:12,color:"#334155",textAlign:"center",padding:20}}>No sessions yet.</div>}
-      </div>
+      </div>`;
+    if (state.showPotOdds) {
+      html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+      [{l:'Pot Size',v:po.potSize,c:'#facc15'},{l:'Call Amount',v:po.callAmount,c:'#f87171'},{l:'Odds Ratio',v:po.oddsRatio,c:'#1a9a9a'},{l:'Break-even',v:po.breakEvenPct,c:'#4ade80'}].forEach(s => {
+        html += `<div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 10px">
+          <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div>
+          <div style="font-size:14px;font-weight:700;color:${s.c};font-family:monospace">${s.v}</div>
+        </div>`;
+      });
+      html += `</div>
+      <div style="font-size:11px;color:#aaa;margin-top:8px"><span style="color:#1a9a9a;font-weight:600">Implied: </span>${po.impliedOdds}</div>
+      <div style="font-size:12px;color:${po.recommendation?.toLowerCase().includes('call')?'#4ade80':'#f87171'};font-weight:600;margin-top:4px">Math says: ${po.recommendation}</div>`;
+    } else {
+      html += `<div style="font-size:11px;color:#333;margin-top:0">Calculate the odds yourself first — then toggle to check</div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Hint
+  if (!state.selected) {
+    if (!state.hintUsed) {
+      html += `<button onclick="getHint()" style="padding:7px 14px;border-radius:8px;background:rgba(26,154,154,0.08);border:1px solid #1a9a9a44;color:#1a9a9a;font-size:12px;cursor:pointer;font-weight:600;margin-bottom:12px;font-family:inherit">Show Hint</button>`;
+    } else if (state.hint) {
+      html += `<div style="font-size:12px;color:#1a9a9a;background:rgba(26,154,154,0.08);border-radius:8px;padding:8px 12px;border:1px solid #1a9a9a44;line-height:1.5;margin-bottom:12px">Hint: ${state.hint}</div>`;
+    }
+  }
+
+  // Options
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">`;
+  (q.options||[]).forEach((opt, i) => {
+    let cls = 'opt-btn', icon = String.fromCharCode(65+i);
+    if (state.selected !== null) {
+      if (i===q.correctIndex) { cls += ' correct'; icon = '✓'; }
+      else if (i===state.selected) { cls += ' wrong'; icon = '✗'; }
+      else cls += ' dimmed';
+    }
+    html += `<button class="${cls}" onclick="answer(${i})"><span style="font-weight:700;font-size:10px;opacity:0.7;flex-shrink:0">${icon}</span>${opt}</button>`;
+  });
+  html += `</div>`;
+
+  // Explanation
+  if (state.selected !== null) {
+    const ok = state.selected === q.correctIndex;
+    html += `<div style="border-radius:10px;padding:12px 14px;background:${ok?'rgba(74,222,128,0.08)':'rgba(248,113,113,0.08)'};border:1px solid ${ok?'#166534':'#991b1b'};font-size:13px;color:#aaa;line-height:1.7;margin-bottom:12px">
+      <div style="font-weight:700;color:${ok?'#4ade80':'#f87171'};margin-bottom:4px;font-size:14px">${ok?'Correct!':'Incorrect'}</div>
+      ${q.explanation}
     </div>
-  );
+    <button class="btn" onclick="fetchQuiz()">Next Hand</button>`;
+  }
+
+  area.innerHTML = html;
 }
 
-// ── Leaderboard ───────────────────────────────────────────────────
-function Leaderboard({users,currentUserId}) {
-  const sorted=[...users].sort((a,b)=>{const pa=a.totalQ?Math.round(((a.totalCorrect||0)/a.totalQ)*100):0;const pb=b.totalQ?Math.round(((b.totalCorrect||0)/b.totalQ)*100):0;return pb-pa||(b.totalQ||0)-(a.totalQ||0);});
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:8}}>
-      {sorted.map((u,i)=>{const pct=u.totalQ?Math.round(((u.totalCorrect||0)/u.totalQ)*100):0;const isMe=u.id===currentUserId;return(
-        <div key={u.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 14px",borderRadius:10,background:isMe?"rgba(124,58,237,0.12)":"rgba(255,255,255,0.04)",border:"1px solid "+(isMe?"#4c1d95":"rgba(255,255,255,0.07)")}}>
-          <div style={{fontSize:13,fontWeight:700,color:i<3?"#fbbf24":"#475569",minWidth:28}}>{["1st","2nd","3rd"][i]||"#"+(i+1)}</div>
-          <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#7c3aed,#4c1d95)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff",flexShrink:0}}>{u.name[0].toUpperCase()}</div>
-          <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:isMe?"#c4b5fd":"#e2e8f0"}}>{u.name}{isMe?" (you)":""}</div><div style={{fontSize:11,color:"#475569"}}>{u.totalQ||0} questions</div></div>
-          <div style={{fontSize:16,fontWeight:700,color:pct>=70?"#22c55e":pct>=40?"#f59e0b":"#f87171"}}>{u.totalQ?pct+"%":"—"}</div>
-        </div>
-      );})}
-      {users.length===0&&<div style={{fontSize:12,color:"#334155",textAlign:"center",padding:20}}>No players yet.</div>}
-    </div>
-  );
+function answer(idx) {
+  if (state.selected !== null || !state.quiz || state.quiz.error) return;
+  state.selected = idx;
+  const ok = idx === state.quiz.correctIndex;
+  state.streak = ok ? state.streak+1 : 0;
+  const p = state.user;
+  p.totalQ = (p.totalQ||0)+1;
+  p.totalCorrect = (p.totalCorrect||0)+(ok?1:0);
+  p.streakBest = Math.max(p.streakBest||0, state.streak);
+  const cat = state.cat;
+  p.cats = p.cats||{preflop:{q:0,c:0},postflop:{q:0,c:0},bluffing:{q:0,c:0}};
+  p.cats[cat] = p.cats[cat]||{q:0,c:0};
+  p.cats[cat].q++;
+  if (ok) p.cats[cat].c++;
+  p.history = [...((p.history||[]).slice(-199)), {ts:Date.now(),cat,correct:ok,q:(state.quiz.question||'').slice(0,60)}];
+  p.handLog = [...((p.handLog||[]).slice(-499)), {ts:Date.now(),cat,correct:ok,question:state.quiz.question,yourAnswer:state.quiz.options?.[idx]}];
+  persistUser();
+  if (state.sessionMode) {
+    state.sessionAnswers = state.sessionAnswers||[];
+    state.sessionAnswers.push({correct:ok,question:state.quiz.question});
+    state.sessionCount++;
+    const btn = document.getElementById('session-btn');
+    if (btn) btn.textContent = state.sessionCount+'/10';
+    if (state.sessionCount >= 10) {
+      setTimeout(()=>showSessionReport(), 500);
+    }
+  }
+  renderQuiz();
 }
 
-// ── Hand Log ──────────────────────────────────────────────────────
-function HandLog({handLog}) {
-  const [search,setSearch]=useState("");
-  const filtered=(handLog||[]).filter(h=>h.question?.toLowerCase().includes(search.toLowerCase())).reverse();
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-      <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search hands..." style={{width:"100%",padding:"9px 12px",borderRadius:8,background:"#050d1a",border:"1px solid #1e293b",color:"#e2e8f0",fontSize:13,boxSizing:"border-box",outline:"none",fontFamily:"inherit"}}/>
-      <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:320,overflowY:"auto"}}>
-        {filtered.map((h,i)=>(
-          <div key={i} style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.06)"}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-              <span style={{color:h.correct?"#22c55e":"#f87171"}}>{h.correct?"✓":"✗"}</span>
-              <span style={{fontSize:10,padding:"2px 8px",borderRadius:8,background:"rgba(255,255,255,0.06)",color:"#64748b"}}>{STREET_CATS.find(c=>c.id===h.cat)?.label}</span>
-              <span style={{fontSize:10,padding:"2px 8px",borderRadius:8,background:"rgba(255,255,255,0.06)",color:"#64748b"}}>{h.variant==="omaha"?"Omaha":"Hold'em"}</span>
-              <span style={{fontSize:10,color:"#334155",marginLeft:"auto"}}>{new Date(h.ts).toLocaleDateString()}</span>
-            </div>
-            <div style={{fontSize:12,color:"#94a3b8",lineHeight:1.5}}>{h.question}</div>
-            {h.yourAnswer&&<div style={{fontSize:11,color:h.correct?"#86efac":"#fca5a5",marginTop:4}}>You: {h.yourAnswer}</div>}
-          </div>
-        ))}
-        {filtered.length===0&&<div style={{fontSize:12,color:"#334155",textAlign:"center",padding:20}}>No hands logged yet.</div>}
-      </div>
-    </div>
-  );
+async function getHint() {
+  const q = state.quiz;
+  if (!q || state.hintUsed) return;
+  if (q.hintText) { state.hint = q.hintText; state.hintUsed = true; renderQuiz(); return; }
+  state.hintUsed = true;
+  try {
+    const t = await callClaude('Give ONE short poker hint (1 sentence) without revealing the answer.',
+      'Hand: '+JSON.stringify({holeCards:q.holeCards,scenario:q.scenario,question:q.question}), 200);
+    state.hint = t.replace(/```/g,'').trim();
+  } catch { state.hint = 'Consider your position and pot odds.'; }
+  renderQuiz();
+}
+
+function showSessionReport() {
+  const answers = state.sessionAnswers||[];
+  const correct = answers.filter(a=>a.correct).length;
+  const pct = Math.round((correct/answers.length)*100);
+  const col = pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
+  let html = `<div style="text-align:center;margin-bottom:20px">
+    <div style="font-size:48px;font-weight:800;color:${col}">${pct}%</div>
+    <div style="font-size:14px;color:#aaa;margin-top:4px">${correct}/${answers.length} correct</div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:16px">`;
+  [{l:'Correct',v:correct,c:'#4ade80'},{l:'Wrong',v:answers.length-correct,c:'#f87171'},{l:'Accuracy',v:pct+'%',c:col}].forEach(s => {
+    html += `<div style="flex:1;background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a;text-align:center">
+      <div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div>
+      <div style="font-size:18px;font-weight:700;color:${s.c}">${s.v}</div>
+    </div>`;
+  });
+  html += `</div><button class="btn" onclick="closeOverlay();state.sessionMode=false;state.sessionCount=0;state.sessionAnswers=[];document.getElementById('session-btn').textContent='Session (10)';fetchQuiz()">Back to Training</button>`;
+  document.getElementById('overlay-content').innerHTML = html;
+  document.getElementById('overlay').style.display = 'flex';
 }
 
 // ── Analytics ─────────────────────────────────────────────────────
-function Analytics({profile,onClose}) {
-  const [vTab,setVTab]=useState("overall");
-  const bv=profile.byVariant||{holdem:{totalQ:0,totalCorrect:0,cats:emptyCats()},omaha:{totalQ:0,totalCorrect:0,cats:emptyCats()}};
-  const vd=vTab==="overall"?{q:profile.totalQ||0,c:profile.totalCorrect||0,cats:profile.cats||emptyCats()}:{q:bv[vTab]?.totalQ||0,c:bv[vTab]?.totalCorrect||0,cats:bv[vTab]?.cats||emptyCats()};
-  const ov=vd.q?Math.round((vd.c/vd.q)*100):0;
-  const ovc=ov>=70?"#22c55e":ov>=40?"#f59e0b":"#f87171";
-  const attempted=STREET_CATS.map(c=>({...c,q:vd.cats[c.id]?.q||0,c:vd.cats[c.id]?.c||0,pct:vd.cats[c.id]?.q>=3?Math.round(((vd.cats[c.id]?.c||0)/(vd.cats[c.id]?.q||1))*100):null})).filter(c=>c.pct!==null).sort((a,b)=>a.pct-b.pct);
-  const leaks=attempted.filter(c=>c.pct<60),strengths=attempted.filter(c=>c.pct>=70);
-  const recent=(profile.history||[]).filter(h=>vTab==="overall"||h.variant===vTab).slice(-20);
-  const recPct=recent.length?Math.round((recent.filter(h=>h.correct).length/recent.length)*100):null;
-  const trend=recPct!==null&&vd.q>20?(recPct>ov?"Improving":"Declining"):null;
-  const now=Date.now(),dayMs=86400000;
-  const days=Array(7).fill(0).map((_,i)=>{const from=now-(7-i)*dayMs,to=from+dayMs;const hs=(profile.history||[]).filter(h=>(vTab==="overall"||h.variant===vTab)&&h.ts>=from&&h.ts<to);return{qs:hs.length,cs:hs.filter(h=>h.correct).length};});
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16,overflowY:"auto"}} onClick={onClose}>
-      <div style={{background:"#0a0f1e",borderRadius:18,border:"1px solid #1e293b",width:"100%",maxWidth:560,maxHeight:"88vh",overflowY:"auto",padding:24}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <div><div style={{fontSize:17,fontWeight:700,color:"#a78bfa"}}>{profile.name} — Analytics</div><div style={{fontSize:11,color:"#475569",marginTop:2}}>{profile.sessions||0} sessions · {profile.totalQ||0} total · Streak: {profile.streakBest||0}</div></div>
-          <button onClick={onClose} style={{background:"transparent",border:"1px solid #1e293b",borderRadius:8,color:"#64748b",cursor:"pointer",padding:"4px 10px",fontSize:13}}>✕</button>
-        </div>
-        <div style={{display:"flex",borderRadius:10,overflow:"hidden",border:"1px solid #1e293b",marginBottom:16}}>
-          {[{id:"overall",label:"Overall"},{id:"holdem",label:"Hold'em"},{id:"omaha",label:"Omaha"}].map(v=>(
-            <button key={v.id} onClick={()=>setVTab(v.id)} style={{flex:1,padding:"9px",border:"none",background:vTab===v.id?"#7c3aed":"#0f172a",color:vTab===v.id?"#fff":"#64748b",fontSize:12,fontWeight:vTab===v.id?700:400,cursor:"pointer",fontFamily:"inherit"}}>{v.label}{v.id!=="overall"&&<span style={{marginLeft:4,fontSize:10,opacity:0.7}}>{bv[v.id]?.totalQ||0}q</span>}</button>
-          ))}
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:16}}>
-          {[{l:"Accuracy",v:vd.q?ov+"%":"—",c:ovc,sub:trend},{l:"Questions",v:vd.q,c:"#67e8f9"},{l:"Correct",v:vd.c,c:"#22c55e"}].map(s=>(
-            <div key={s.l} style={{background:"rgba(255,255,255,0.04)",borderRadius:10,padding:"12px",border:"1px solid rgba(255,255,255,0.06)"}}>
-              <div style={{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>{s.l}</div>
-              <div style={{fontSize:20,fontWeight:700,color:s.c}}>{s.v}</div>
-              {s.sub&&<div style={{fontSize:10,color:s.sub==="Improving"?"#22c55e":"#f87171",marginTop:2}}>{s.sub}</div>}
-            </div>
-          ))}
-        </div>
-        {vTab==="overall"&&(bv.holdem?.totalQ||bv.omaha?.totalQ)>0&&(
-          <div style={{background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"12px 14px",marginBottom:14,border:"1px solid rgba(255,255,255,0.06)"}}>
-            <div style={{fontSize:11,color:"#64748b",fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:0.8}}>Hold'em vs Omaha</div>
-            {[{id:"holdem",label:"Hold'em",col:"#7dd3fc"},{id:"omaha",label:"Omaha",col:"#c4b5fd"}].map(v=>{const vq=bv[v.id]?.totalQ||0,vc2=bv[v.id]?.totalCorrect||0,vp=vq?Math.round((vc2/vq)*100):0,pc=vp>=70?"#22c55e":vp>=40?"#f59e0b":"#f87171";return(
-              <div key={v.id} style={{marginBottom:10}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:12,color:v.col,fontWeight:600}}>{v.label}</span><span style={{fontSize:11,color:"#475569"}}>{vc2}/{vq} · <span style={{color:pc,fontWeight:600}}>{vq?vp+"%":"—"}</span></span></div>
-                <div style={{height:5,background:"rgba(255,255,255,0.06)",borderRadius:3,overflow:"hidden"}}><div style={{width:(vq?vp:0)+"%",height:"100%",background:pc,borderRadius:3}}/></div>
-              </div>
-            );})}
-          </div>
-        )}
-        <div style={{background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"14px 16px",marginBottom:12,border:"1px solid rgba(255,255,255,0.06)"}}>
-          <div style={{fontSize:11,color:"#64748b",fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:0.8}}>Category Breakdown</div>
-          {STREET_CATS.map(c=>{const s=vd.cats[c.id]||{q:0,c:0};const pct=s.q?Math.round((s.c/s.q)*100):0;const col=pct>=70?"#22c55e":pct>=40?"#f59e0b":"#f87171";return(
-            <div key={c.id} style={{marginBottom:10}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:12,color:"#94a3b8"}}>{c.label}</span><span style={{fontSize:11,color:"#475569"}}>{s.c}/{s.q}{s.q>0&&<span style={{color:col,marginLeft:4,fontWeight:600}}>{pct}%</span>}</span></div>
-              <div style={{height:5,background:"rgba(255,255,255,0.06)",borderRadius:3,overflow:"hidden"}}><div style={{width:(s.q?pct:0)+"%",height:"100%",background:col,borderRadius:3}}/></div>
-            </div>
-          );})}
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-          <div style={{background:"rgba(248,113,113,0.06)",borderRadius:12,padding:"12px",border:"1px solid rgba(248,113,113,0.15)"}}>
-            <div style={{fontSize:11,color:"#f87171",fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>Leaks</div>
-            {leaks.length===0?<div style={{fontSize:12,color:"#475569"}}>None found</div>:leaks.map(c=><div key={c.id} style={{fontSize:12,color:"#fca5a5",marginBottom:3}}>{c.label} — {c.pct}%</div>)}
-          </div>
-          <div style={{background:"rgba(34,197,94,0.06)",borderRadius:12,padding:"12px",border:"1px solid rgba(34,197,94,0.15)"}}>
-            <div style={{fontSize:11,color:"#22c55e",fontWeight:700,marginBottom:8,textTransform:"uppercase",letterSpacing:0.8}}>Strengths</div>
-            {strengths.length===0?<div style={{fontSize:12,color:"#475569"}}>Keep playing!</div>:strengths.map(c=><div key={c.id} style={{fontSize:12,color:"#86efac",marginBottom:3}}>{c.label} — {c.pct}%</div>)}
-          </div>
-        </div>
-        <div style={{background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"14px 16px",border:"1px solid rgba(255,255,255,0.06)"}}>
-          <div style={{fontSize:11,color:"#64748b",fontWeight:600,marginBottom:10,textTransform:"uppercase",letterSpacing:0.8}}>Last 7 Days</div>
-          <div style={{display:"flex",alignItems:"flex-end",gap:6,height:52}}>
-            {days.map((d,i)=>{const h=d.qs?Math.max(6,Math.round((d.qs/Math.max(...days.map(x=>x.qs),1))*48)):3;const pct=d.qs?Math.round((d.cs/d.qs)*100):0;const col=d.qs===0?"rgba(255,255,255,0.06)":pct>=70?"#22c55e":pct>=40?"#f59e0b":"#f87171";return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}><div style={{width:"100%",height:h,background:col,borderRadius:2}}/><div style={{fontSize:8,color:"#334155"}}>{["7d","6d","5d","4d","3d","2d","1d"][i]}</div></div>);})}
-          </div>
-        </div>
-        {attempted.length>0&&<div style={{marginTop:12,background:"rgba(167,139,250,0.06)",borderRadius:12,padding:"12px",border:"1px solid rgba(167,139,250,0.15)"}}>
-          <div style={{fontSize:11,color:"#a78bfa",fontWeight:700,marginBottom:4,textTransform:"uppercase",letterSpacing:0.8}}>Opportunities</div>
-          <div style={{fontSize:12,color:"#c4b5fd",lineHeight:1.7}}>{leaks.length>0?"Focus on "+leaks.map(l=>l.label).join(", ")+". ":""}{recPct!==null?"Recent: "+recPct+"% ("+recent.length+" hands). ":""}{(profile.streakBest||0)>=5?"Solid fundamentals.":""}</div>
-        </div>}
+function showAnalytics() {
+  const p = state.user;
+  if (!p) return;
+  const tQ=p.totalQ||0, tC=p.totalCorrect||0;
+  const ov = tQ ? Math.round((tC/tQ)*100) : 0;
+  const ovc = ov>=70?'#4ade80':ov>=40?'#facc15':'#f87171';
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div><div style="font-size:16px;font-weight:700;color:#1a9a9a">${p.name} — Analytics</div>
+    <div style="font-size:11px;color:#555;margin-top:2px">${p.sessions||0} sessions &middot; ${tQ} questions &middot; Best streak: ${p.streakBest||0}</div></div>
+    <button onclick="closeOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;color:#555;cursor:pointer;padding:4px 10px;font-size:13px">&times;</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">`;
+  [{l:'Accuracy',v:tQ?ov+'%':'—',c:ovc},{l:'Questions',v:tQ,c:'#1a9a9a'},{l:'Correct',v:tC,c:'#4ade80'}].forEach(s => {
+    html += `<div style="background:#111;border-radius:10px;padding:11px;border:1px solid #1a1a1a">
+      <div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div>
+      <div style="font-size:18px;font-weight:700;color:${s.c}">${s.v}</div>
+    </div>`;
+  });
+  html += `</div><div style="background:#111;border-radius:12px;padding:13px;border:1px solid #1a1a1a;margin-bottom:12px">
+    <div style="font-size:10px;color:#444;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Category Breakdown</div>`;
+  ['preflop','postflop','bluffing'].forEach(cat => {
+    const s = p.cats?.[cat]||{q:0,c:0};
+    const pct = s.q ? Math.round((s.c/s.q)*100) : 0;
+    const col = pct>=70?'#4ade80':pct>=40?'#facc15':'#f87171';
+    html += `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;color:#aaa;text-transform:capitalize">${cat}</span>
+        <span style="font-size:11px;color:#444">${s.c}/${s.q}${s.q>0?` <span style="color:${col};font-weight:600">${pct}%</span>`:''}</span>
       </div>
+      <div style="height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden">
+        <div style="width:${s.q?pct:0}%;height:100%;background:${col};border-radius:3px"></div>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+  const leaks = ['preflop','postflop','bluffing'].filter(c=>(p.cats?.[c]?.q||0)>=3&&Math.round(((p.cats[c].c||0)/(p.cats[c].q||1))*100)<60);
+  const strengths = ['preflop','postflop','bluffing'].filter(c=>(p.cats?.[c]?.q||0)>=3&&Math.round(((p.cats[c].c||0)/(p.cats[c].q||1))*100)>=70);
+  html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div style="background:rgba(248,113,113,0.06);border-radius:10px;padding:11px;border:1px solid rgba(248,113,113,0.15)">
+      <div style="font-size:10px;color:#f87171;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px">Leaks</div>
+      ${leaks.length?leaks.map(c=>`<div style="font-size:12px;color:#fca5a5;margin-bottom:3px;text-transform:capitalize">${c}</div>`).join(''):'<div style="font-size:12px;color:#333">None found</div>'}
     </div>
-  );
+    <div style="background:rgba(74,222,128,0.06);border-radius:10px;padding:11px;border:1px solid rgba(74,222,128,0.15)">
+      <div style="font-size:10px;color:#4ade80;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px">Strengths</div>
+      ${strengths.length?strengths.map(c=>`<div style="font-size:12px;color:#86efac;margin-bottom:3px;text-transform:capitalize">${c}</div>`).join(''):'<div style="font-size:12px;color:#333">Keep playing!</div>'}
+    </div>
+  </div>`;
+  document.getElementById('overlay-content').innerHTML = html;
+  document.getElementById('overlay').style.display = 'flex';
 }
 
 // ── Hand Analyzer ─────────────────────────────────────────────────
-function HandAnalyzer({onClose}) {
-  const [txt,setTxt]=useState("");const [result,setResult]=useState(null);const [loading,setLoading]=useState(false);
-  const gc={A:"#22c55e",B:"#86efac",C:"#f59e0b",D:"#f87171"};
-  const vc={Good:"#22c55e",Okay:"#f59e0b",Mistake:"#f87171"};
-  async function analyze(){setLoading(true);setResult(null);try{const t=await callClaude(`Expert poker coach. Respond ONLY valid JSON: {"summary":"","heroCards":"","board":"","gameContext":"","result":"","overallGrade":"A","gradeSummary":"","streets":[{"street":"Preflop","action":"","grade":"A","verdict":"Good","analysis":"","alternative":null}],"keyMistakes":[],"wellPlayed":[],"studyTip":""}`, "Analyze:\n\n"+txt, 1500);setResult(JSON.parse(t.replace(/```json|```/g,"").trim()));}catch{setResult({error:true});}setLoading(false);}
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.82)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16,overflowY:"auto"}} onClick={onClose}>
-      <div style={{background:"#0a0f1e",borderRadius:18,border:"1px solid #1e293b",width:"100%",maxWidth:600,maxHeight:"90vh",overflowY:"auto",padding:24,display:"flex",flexDirection:"column",gap:14}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><div style={{fontSize:17,fontWeight:700,color:"#a78bfa"}}>Hand Analyzer</div><div style={{fontSize:11,color:"#475569",marginTop:2}}>Describe a hand for coaching feedback</div></div>
-          <button onClick={onClose} style={{background:"transparent",border:"1px solid #1e293b",borderRadius:8,color:"#64748b",cursor:"pointer",padding:"4px 10px",fontSize:13}}>✕</button>
-        </div>
-        {!result&&<><textarea value={txt} onChange={e=>setTxt(e.target.value)} placeholder={"Describe your hand...\n\nExample:\n$1/$2 NL, BTN with AhKd, $200 stacks.\nMP raises $6, I 3-bet $18, MP calls.\nFlop: Ks7h2c. I bet $22, MP calls.\nTurn: 4d. I bet $50, MP calls.\nRiver: Jc. MP bets $100, I called. MP shows 77. Lost."} rows={9} style={{width:"100%",padding:"12px",borderRadius:10,background:"#050d1a",border:"1px solid #1e293b",color:"#e2e8f0",fontSize:13,lineHeight:1.6,resize:"vertical",outline:"none",fontFamily:"system-ui,sans-serif",boxSizing:"border-box"}}/><button onClick={analyze} disabled={loading||!txt.trim()} style={{padding:"12px",borderRadius:10,background:txt.trim()?"linear-gradient(135deg,#7c3aed,#5b21b6)":"#1e293b",border:"none",color:txt.trim()?"#fff":"#475569",fontSize:14,fontWeight:700,cursor:txt.trim()?"pointer":"default"}}>{loading?"Analyzing...":"Analyze Hand"}</button></>}
-        {result?.error&&<div style={{color:"#f87171",fontSize:13,textAlign:"center"}}>Failed. <button onClick={()=>setResult(null)} style={{color:"#a78bfa",background:"none",border:"none",cursor:"pointer",textDecoration:"underline"}}>Try again</button></div>}
-        {result&&!result.error&&<>
-          <div style={{background:"rgba(255,255,255,0.04)",borderRadius:12,padding:"14px",border:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",gap:14}}>
-            <div style={{width:56,height:56,borderRadius:10,background:gc[result.overallGrade]+"22",border:"2px solid "+gc[result.overallGrade],display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,fontWeight:800,color:gc[result.overallGrade],flexShrink:0}}>{result.overallGrade}</div>
-            <div><div style={{fontSize:13,fontWeight:600,color:"#e2e8f0",marginBottom:3}}>{result.summary}</div><div style={{fontSize:11,color:"#64748b"}}>{result.gameContext} · {result.result}</div><div style={{fontSize:12,color:"#94a3b8",marginTop:3}}>{result.gradeSummary}</div></div>
-          </div>
-          {(result.streets||[]).map((s,i)=>(
-            <div key={i} style={{background:"rgba(255,255,255,0.03)",borderRadius:10,border:"1px solid rgba(255,255,255,0.07)",padding:"11px 13px"}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}><span style={{fontSize:12,fontWeight:700,color:"#475569",minWidth:56}}>{s.street}</span><span style={{fontSize:11,padding:"2px 7px",borderRadius:7,background:vc[s.verdict]+"22",color:vc[s.verdict],fontWeight:600}}>{s.verdict}</span><span style={{fontSize:13,fontWeight:800,color:gc[s.grade],marginLeft:"auto"}}>{s.grade}</span></div>
-              <div style={{fontSize:12,color:"#94a3b8",fontStyle:"italic",marginBottom:3}}>{s.action}</div>
-              <div style={{fontSize:12,color:"#cbd5e1",lineHeight:1.7}}>{s.analysis}</div>
-              {s.alternative&&<div style={{fontSize:12,color:"#7dd3fc",background:"rgba(56,189,248,0.06)",borderRadius:7,padding:"5px 9px",border:"1px solid rgba(56,189,248,0.15)",marginTop:6}}>Alt: {s.alternative}</div>}
-            </div>
-          ))}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            <div style={{background:"rgba(248,113,113,0.06)",borderRadius:10,padding:"11px",border:"1px solid rgba(248,113,113,0.15)"}}>
-              <div style={{fontSize:11,color:"#f87171",fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Mistakes</div>
-              {(result.keyMistakes||[]).length===0?<div style={{fontSize:12,color:"#475569"}}>None</div>:(result.keyMistakes||[]).map((m,i)=><div key={i} style={{fontSize:12,color:"#fca5a5",marginBottom:4}}>- {m}</div>)}
-            </div>
-            <div style={{background:"rgba(34,197,94,0.06)",borderRadius:10,padding:"11px",border:"1px solid rgba(34,197,94,0.15)"}}>
-              <div style={{fontSize:11,color:"#22c55e",fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:0.8}}>Well Played</div>
-              {(result.wellPlayed||[]).length===0?<div style={{fontSize:12,color:"#475569"}}>Keep going!</div>:(result.wellPlayed||[]).map((w,i)=><div key={i} style={{fontSize:12,color:"#86efac",marginBottom:4}}>+ {w}</div>)}
-            </div>
-          </div>
-          {result.studyTip&&<div style={{background:"rgba(167,139,250,0.06)",borderRadius:10,padding:"11px",border:"1px solid rgba(167,139,250,0.2)"}}>
-            <div style={{fontSize:11,color:"#a78bfa",fontWeight:700,marginBottom:4,textTransform:"uppercase",letterSpacing:0.8}}>Coach Tip</div>
-            <div style={{fontSize:13,color:"#c4b5fd",lineHeight:1.7}}>{result.studyTip}</div>
-          </div>}
-          <button onClick={()=>{setResult(null);setTxt("");}} style={{padding:"10px",borderRadius:10,background:"transparent",border:"1px solid #1e293b",color:"#64748b",fontSize:13,cursor:"pointer"}}>Analyze Another Hand</button>
-        </>}
-      </div>
+function showHandAnalyzer() {
+  document.getElementById('overlay-content').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div><div style="font-size:16px;font-weight:700;color:#1a9a9a">Hand Analyzer</div>
+      <div style="font-size:11px;color:#555;margin-top:2px">Describe a hand for coaching feedback</div></div>
+      <button onclick="closeOverlay()" style="background:transparent;border:1px solid #333;border-radius:8px;color:#555;cursor:pointer;padding:4px 10px;font-size:13px">&times;</button>
     </div>
-  );
+    <textarea id="hand-txt" placeholder="Describe your hand...\n\nExample:\n$1/$2 NL, BTN with AhKd, $200 stacks.\nMP raises $6, I 3-bet $18, MP calls.\nFlop: Ks7h2c. I bet $22, MP calls.\nTurn: 4d. I bet $50, MP calls.\nRiver: Jc. MP bets $100, I called. MP shows 77. Lost." rows="8" style="width:100%;padding:11px;border-radius:10px;background:#111;border:1px solid #333;color:#fff;font-size:13px;line-height:1.6;resize:vertical;outline:none;font-family:system-ui,sans-serif;box-sizing:border-box;margin-bottom:10px"></textarea>
+    <div id="hand-err" style="font-size:12px;color:#f87171;margin-bottom:8px;display:none"></div>
+    <div id="hand-result"></div>
+    <button class="btn" onclick="analyzeHand()">Analyze Hand</button>`;
+  document.getElementById('overlay').style.display = 'flex';
 }
 
-// ── User Select ───────────────────────────────────────────────────
-function UserSelect({users,onSelect,onAddUser}) {
-  const [name,setName]=useState("");const [adding,setAdding]=useState(false);const [err,setErr]=useState("");
-  function add(){const n=name.trim();if(!n){setErr("Enter a name");return;}if(users.find(u=>u.name.toLowerCase()===n.toLowerCase())){setErr("Name taken");return;}onAddUser(n);setName("");setAdding(false);setErr("");}
-  return (
-    <div style={{minHeight:"100vh",background:"#020617",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
-      <div style={{width:"100%",maxWidth:400}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:48,marginBottom:8}}>♠</div>
-          <div style={{fontSize:24,fontWeight:700,color:"#a78bfa"}}>Upgrade Poker Coach</div>
-          <div style={{fontSize:13,color:"#475569",marginTop:6}}>by <a href="https://upgradepoker.com" target="_blank" style={{color:"#7dd3fc",textDecoration:"none"}}>upgradepoker.com</a></div>
-          <div style={{fontSize:12,color:"#334155",marginTop:8}}>Select your profile to start training</div>
+async function analyzeHand() {
+  const txt = (document.getElementById('hand-txt')?.value||'').trim();
+  if (!txt) return;
+  const res = document.getElementById('hand-result');
+  if (res) res.innerHTML = '<div style="color:#555;font-size:13px;margin-bottom:10px">Analyzing...</div>';
+  try {
+    const sys = `Expert poker coach. Respond ONLY valid JSON: {"summary":"","heroCards":"","gameContext":"","result":"","overallGrade":"A","gradeSummary":"","streets":[{"street":"Preflop","action":"","grade":"A","verdict":"Good","analysis":"","alternative":null}],"keyMistakes":[],"wellPlayed":[],"studyTip":""}`;
+    const t = await callClaude(sys, 'Analyze:\n\n'+txt, 1500);
+    const r = JSON.parse(t.replace(/```json|```/g,'').trim());
+    const gc={A:'#4ade80',B:'#86efac',C:'#facc15',D:'#f87171'};
+    const vc={Good:'#4ade80',Okay:'#facc15',Mistake:'#f87171'};
+    let html = `<div style="background:#111;border-radius:10px;padding:12px;border:1px solid #1a1a1a;display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:50px;height:50px;border-radius:10px;background:${gc[r.overallGrade]}22;border:2px solid ${gc[r.overallGrade]};display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:${gc[r.overallGrade]};flex-shrink:0">${r.overallGrade}</div>
+      <div><div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:3px">${r.summary}</div>
+      <div style="font-size:11px;color:#555">${r.gameContext} &middot; ${r.result}</div>
+      <div style="font-size:12px;color:#aaa;margin-top:3px">${r.gradeSummary}</div></div>
+    </div>`;
+    (r.streets||[]).forEach(s => {
+      html += `<div style="background:#111;border-radius:10px;border:1px solid #1a1a1a;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font-size:11px;font-weight:700;color:#555;min-width:52px">${s.street}</span>
+          <span style="font-size:10px;padding:2px 7px;border-radius:6px;background:${vc[s.verdict]||'#555'}22;color:${vc[s.verdict]||'#555'};font-weight:600">${s.verdict}</span>
+          <span style="font-size:13px;font-weight:800;color:${gc[s.grade]||'#fff'};margin-left:auto">${s.grade}</span>
         </div>
-        {users.length>0&&<div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
-          {users.map(u=>(
-            <button key={u.id} onClick={()=>onSelect(u)} style={{width:"100%",padding:"13px 16px",borderRadius:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"#e2e8f0",cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontFamily:"inherit"}}>
-              <div style={{width:34,height:34,borderRadius:"50%",background:"linear-gradient(135deg,#7c3aed,#4c1d95)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0}}>{u.name[0].toUpperCase()}</div>
-              <div style={{textAlign:"left",flex:1}}><div style={{fontSize:14,fontWeight:600}}>{u.name}</div><div style={{fontSize:11,color:"#475569"}}>{u.totalQ||0} questions · {u.totalQ?Math.round(((u.totalCorrect||0)/u.totalQ)*100):0}%</div></div>
-              <div style={{color:"#334155",fontSize:16}}>›</div>
-            </button>
-          ))}
-        </div>}
-        {!adding?<button onClick={()=>setAdding(true)} style={{width:"100%",padding:"13px",borderRadius:12,background:"linear-gradient(135deg,#7c3aed,#5b21b6)",border:"none",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>+ Add New Player</button>:(
-          <div style={{background:"rgba(255,255,255,0.04)",borderRadius:12,border:"1px solid rgba(255,255,255,0.1)",padding:16}}>
-            <div style={{fontSize:13,color:"#94a3b8",marginBottom:8}}>Your name</div>
-            <input value={name} onChange={e=>{setName(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&add()} placeholder="e.g. Alex" autoFocus style={{width:"100%",padding:"10px 12px",borderRadius:8,background:"#0f172a",border:"1px solid #1e293b",color:"#e2e8f0",fontSize:14,boxSizing:"border-box",outline:"none",marginBottom:8,fontFamily:"inherit"}}/>
-            {err&&<div style={{fontSize:12,color:"#f87171",marginBottom:8}}>{err}</div>}
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={add} style={{flex:1,padding:"9px",borderRadius:8,background:"#7c3aed",border:"none",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer"}}>Create</button>
-              <button onClick={()=>{setAdding(false);setErr("");setName("");}} style={{padding:"9px 14px",borderRadius:8,background:"transparent",border:"1px solid #1e293b",color:"#64748b",fontSize:13,cursor:"pointer"}}>Cancel</button>
-            </div>
-          </div>
-        )}
-        <div style={{textAlign:"center",marginTop:24,fontSize:11,color:"#1e293b"}}>© Upgrade Poker · Powered by Claude AI</div>
-      </div>
-    </div>
-  );
+        <div style="font-size:12px;color:#666;font-style:italic;margin-bottom:3px">${s.action}</div>
+        <div style="font-size:12px;color:#aaa;line-height:1.7">${s.analysis}</div>
+        ${s.alternative?`<div style="font-size:12px;color:#1a9a9a;background:rgba(26,154,154,0.06);border-radius:7px;padding:5px 8px;border:1px solid #1a9a9a44;margin-top:5px">Alt: ${s.alternative}</div>`:''}
+      </div>`;
+    });
+    if (r.studyTip) html += `<div style="background:rgba(26,154,154,0.06);border-radius:10px;padding:10px;border:1px solid #1a9a9a44;margin-bottom:10px">
+      <div style="font-size:10px;color:#1a9a9a;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.8px">Coach Tip</div>
+      <div style="font-size:13px;color:#aaa;line-height:1.7">${r.studyTip}</div>
+    </div>`;
+    html += `<button class="btn-outline" onclick="document.getElementById('hand-result').innerHTML='';document.getElementById('hand-txt').value=''" style="margin-bottom:10px">Analyze Another</button>`;
+    if (res) res.innerHTML = html;
+  } catch(e) {
+    if (res) res.innerHTML = `<div style="color:#f87171;font-size:13px;margin-bottom:10px">Failed: ${e.message}</div>`;
+  }
 }
 
-// ── Session Report ────────────────────────────────────────────────
-function SessionReport({sessionData,onDone}) {
-  const {answers,cat}=sessionData;
-  const correct=answers.filter(a=>a.correct).length;
-  const pct=Math.round((correct/answers.length)*100);
-  const color=pct>=70?"#22c55e":pct>=40?"#f59e0b":"#f87171";
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:16,padding:"20px 0"}}>
-      <div style={{textAlign:"center"}}><div style={{fontSize:48,fontWeight:800,color}}>{pct}%</div><div style={{fontSize:15,color:"#94a3b8",marginTop:4}}>{correct}/{answers.length} correct</div><div style={{fontSize:13,color:"#64748b",marginTop:2}}>{STREET_CATS.find(c=>c.id===cat)?.label} session</div></div>
-      <div style={{display:"flex",gap:8}}>{[{l:"Correct",v:correct,c:"#22c55e"},{l:"Wrong",v:answers.length-correct,c:"#f87171"},{l:"Accuracy",v:pct+"%",c:color}].map(s=>(<div key={s.l} style={{flex:1,background:"rgba(255,255,255,0.04)",borderRadius:10,padding:"10px",border:"1px solid rgba(255,255,255,0.06)",textAlign:"center"}}><div style={{fontSize:10,color:"#475569",textTransform:"uppercase",letterSpacing:0.8,marginBottom:3}}>{s.l}</div><div style={{fontSize:18,fontWeight:700,color:s.c}}>{s.v}</div></div>))}</div>
-      <button onClick={onDone} style={{padding:"12px",borderRadius:10,background:"linear-gradient(135deg,#7c3aed,#5b21b6)",border:"none",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>Back to Training</button>
+// ── Tools ─────────────────────────────────────────────────────────
+function renderEquityCalc() {
+  return `<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><div style="font-size:11px;color:#555;margin-bottom:4px">Hand 1</div><input class="inp" id="eq-h1" value="Ah Kd" placeholder="Ah Kd"/></div>
+      <div><div style="font-size:11px;color:#555;margin-bottom:4px">Hand 2</div><input class="inp" id="eq-h2" value="Qh Qc" placeholder="Qh Qc"/></div>
     </div>
-  );
+    <div><div style="font-size:11px;color:#555;margin-bottom:4px">Board (optional)</div><input class="inp" id="eq-board" placeholder="Kc 7h 2d"/></div>
+    <button class="btn" onclick="calcEquity()">Calculate Equity</button>
+    <div id="eq-result"></div>
+  </div>`;
 }
 
-// ── Main App ──────────────────────────────────────────────────────
-function App() {
-  const [screen,setScreen]   = useState("select");
-  const [users,setUsers]     = useState(()=>loadUsers());
-  const [activeUser,setActiveUser] = useState(null);
-  const [tab,setTab]         = useState("quiz");
-  const [toolTab,setToolTab] = useState("equity");
-  const [gameVariant,setGameVariant] = useState("Hold'em");
-  const [gameType,setGameType]       = useState("Cash");
-  const [activeCat,setActiveCat]     = useState("preflop");
-  const [difficulty,setDifficulty]   = useState("Intermediate");
-  const [villain,setVillain]         = useState("TAG");
-  const [showPotOdds,setShowPotOdds] = useState(false);
-  const [quiz,setQuiz]         = useState(null);
-  const [quizError,setQuizError] = useState("");
-  const [loading,setLoading]   = useState(false);
-  const [selected,setSelected] = useState(null);
-  const [hintUsed,setHintUsed] = useState(false);
-  const [hint,setHint]         = useState(null);
-  const [hintLoading,setHintLoading] = useState(false);
-  const [streak,setStreak]     = useState(0);
-  const [sessionMode,setSessionMode]     = useState(false);
-  const [sessionAnswers,setSessionAnswers] = useState([]);
-  const [sessionDone,setSessionDone]     = useState(false);
-  const [showAnalytics,setShowAnalytics]       = useState(false);
-  const [showHandAnalyzer,setShowHandAnalyzer] = useState(false);
-  const quizHistory = useRef([]);
-  const SESSION_SIZE = 10;
-
-  function doSelectUser(meta) {
-    let p=loadProfile(meta.id); if(!p) p=emptyProfile(meta.name);
-    p.sessions=(p.sessions||0)+1; p.lastSeen=Date.now();
-    saveProfile(meta.id,p);
-    setActiveUser({...p,id:meta.id}); setStreak(0); setScreen("quiz"); setTab("quiz");
-  }
-  function handleAddUser(name) {
-    const id="upc_"+Date.now(),profile=emptyProfile(name),meta={id,name,totalQ:0,totalCorrect:0};
-    const nu=[...users,meta]; setUsers(nu); saveUsers(nu); saveProfile(id,profile); doSelectUser(meta);
-  }
-  function persist(updated) {
-    saveProfile(updated.id,updated);
-    const nu=users.map(u=>u.id===updated.id?{...u,totalQ:updated.totalQ,totalCorrect:updated.totalCorrect}:u);
-    setUsers(nu); saveUsers(nu);
-  }
-
-  const fetchQuiz = useCallback(async (cat) => {
-    setLoading(true); setQuiz(null); setSelected(null); setHintUsed(false); setHint(null); setQuizError("");
-    const deck=shuffleDeck();
-    const isOmaha=gameVariant==="Mixed"?Math.random()>0.5:gameVariant==="Omaha";
-    const variantName=isOmaha?"Omaha":"Texas Holdem";
-    const holeCards=isOmaha?deck.slice(0,4):deck.slice(0,2);
-    const board=deck.slice(isOmaha?4:2,isOmaha?9:7);
-    const tier=classifyHand(holeCards[0],holeCards[1]);
-    const holeStr=holeCards.map(c=>c.rank+c.suit).join(" ");
-    const boardStr=board.map(c=>c.rank+c.suit).join(" ");
-    // Build correct 8-max position order: seats go clockwise starting UTG after dealer
-    // Hero is always last seat (numSeats-1), which maps to BTN visually at bottom
-    // Positions assigned clockwise: UTG, UTG+1, UTG+2, MP, HJ, CO, SB, BTN
-    const allPos = POS8.slice(0, numSeats);
-    // Hero seat is numSeats-1, which is BTN position in the array
-    const heroPos = allPos[numSeats - 1]; // This is always BTN visually
-    // Override pos to be accurate based on seat
-    const pos = allPos[Math.floor(Math.random() * numSeats)];
-    const heroSeatIndex = allPos.indexOf(pos);
-    const stackArr = [stacks,stacks+20,stacks-15,stacks+40,stacks-10,stacks+60,stacks+10,stacks-5].slice(0,numSeats).map(v=>"$"+Math.max(10,v));
-    const sys=`Expert poker coach creating training scenarios. Game: ${variantName}. Format: ${isTournament?"Tournament":"Cash Game"}. Villain: ${villain}.
-
-POSITION RULES — CRITICAL:
-- The table has ${numSeats} seats with positions in order: ${allPos.join(", ")}
-- Hero is in position: ${pos}
-- The heroPosition field in your JSON MUST be "${pos}" — do not change it
-- The scenario description MUST refer to hero as being in the ${pos} position
-- allPositions in JSON MUST be exactly: ${JSON.stringify(allPos)}
-- SB and BB are always the last two positions before UTG. BTN is always last position.
-
-LEGAL ACTIONS RULES — CRITICAL:
-- If SB limps/completes, hero's options in BB are: Check or Raise (NOT fold, NOT call — already paid BB)
-- If facing a raise, options are: Fold, Call, or Re-raise
-- If first to act preflop (no raise), options are: Fold, Call (limp), or Raise
-- If facing a bet postflop, options are: Fold, Call, or Raise
-- If checked to postflop, options are: Check or Bet
-- NEVER include illegal actions as answer options (e.g. fold when in BB facing a limp, call when no bet was made)
-- ALL FOUR answer options must be legal poker actions given the exact scenario described
-
-DIFFICULTY — ${difficulty}: ${dc[difficulty]}
-
-GENERAL RULES:
-- Use EXACT hole cards: ${holeStr} — never change them
-- Vary correct answers: fold / call / raise / check — not always the same
-- Scenario must clearly state all relevant action before hero must decide
-- 8-max positions in order: UTG UTG+1 UTG+2 MP HJ CO SB BTN
-
-Respond ONLY valid JSON no markdown: {"variant":"${variantName}","gameType":"${isTournament?"Tournament":"Cash Game"}","street":"${street}","heroPosition":"${pos}","numSeats":${numSeats},"dealerSeat":${Math.floor(Math.random()*numSeats)},"allPositions":${JSON.stringify(allPos)},"stackSizes":${JSON.stringify(stackArr)},"bets":{},"potDisplay":"$0","blinds":"${isTournament?"100/200":"1/2"}","holeCards":${JSON.stringify(holeCards.map(c=>({rank:c.rank,suit:c.suit})))},"communityCards":[],"showCommunity":false,"scenario":"2-3 sentences. State hero position (${pos}), describe all action before hero, make clear what legal options exist.","question":"What is the best action?","options":["Legal option A","Legal option B","Legal option C","Legal option D"],"correctIndex":0,"explanation":"3-4 sentences: why correct, reasoning, what makes this spot interesting.","hintText":"One hint guiding thinking without revealing answer.","potOdds":{"potSize":"$0","callAmount":"$0","oddsRatio":"X:1","breakEvenPct":"0%","impliedOdds":"note","recommendation":"call or fold"}}`;
-    const prompt=`${cat} ${isTournament?"tournament":"cash"} scenario. Variant: ${variantName}. Hero: ${pos}, ${numSeats}-handed. EXACT cards: ${holeStr} (${tier}). Board seed: ${boardStr}. Stack: ${stacks}. Scenario type: ${sh}.${recent?" Avoid recently seen combos: "+recent:""}
-
-Generate a ${difficulty}-level scenario. The 4 answer options must reflect the difficulty:
-${difficulty==="Beginner"?"- One clearly correct answer, three obviously wrong answers (e.g. massive overbet, clear fold with strong hand)":""}
-${difficulty==="Intermediate"?"- One correct answer, three plausible-but-wrong answers that intermediate players commonly choose (e.g. slightly wrong sizing, betting when checking is better)":""}
-${difficulty==="Advanced"?"- One correct answer that requires solver-level thinking, three answers that all seem reasonable to an experienced player — only one is truly best":""}
-`;
-    try {
-      const txt=await callClaude(sys,prompt,1400);
-      const parsed=JSON.parse(txt.replace(/```json|```/g,"").trim());
-      quizHistory.current=[...quizHistory.current.slice(-9),holeCards.map(c=>c.rank+c.suit).join("")];
-      setQuiz(parsed);
-    } catch(e) {
-      setQuizError(e.message||"Unknown error");
-      setQuiz({error:true});
-    }
-    setLoading(false);
-  }, [difficulty,villain,gameVariant,gameType]);
-
-  useEffect(()=>{ if(screen==="quiz"&&tab==="quiz") fetchQuiz(activeCat); },[activeCat,screen,tab,gameType,gameVariant,difficulty,villain]);
-
-  async function getHint() {
-    if(!quiz||hintUsed) return;
-    if(quiz.hintText){setHint(quiz.hintText);setHintUsed(true);return;}
-    setHintLoading(true);
-    try{const t=await callClaude("Give ONE short poker hint (1 sentence) without revealing the answer.","Hand: "+JSON.stringify({holeCards:quiz.holeCards,scenario:quiz.scenario,question:quiz.question}),200);setHint(t.replace(/```/g,"").trim());}catch{setHint("Consider your position and equity.");}
-    setHintUsed(true);setHintLoading(false);
-  }
-
-  function handleAnswer(idx) {
-    if(selected!==null||!quiz||quiz.error||!activeUser) return;
-    setSelected(idx);
-    const ok=idx===quiz.correctIndex,ns=ok?streak+1:0; setStreak(ns);
-    const vKey=(quiz.variant||"").toLowerCase().includes("omaha")?"omaha":"holdem";
-    const bv=activeUser.byVariant||{holdem:{totalQ:0,totalCorrect:0,cats:emptyCats()},omaha:{totalQ:0,totalCorrect:0,cats:emptyCats()}};
-    const ve=bv[vKey]||{totalQ:0,totalCorrect:0,cats:emptyCats()};
-    const updated={
-      ...activeUser,
-      totalQ:(activeUser.totalQ||0)+1,totalCorrect:(activeUser.totalCorrect||0)+(ok?1:0),
-      streakBest:Math.max(activeUser.streakBest||0,ns),
-      byVariant:{...bv,[vKey]:{totalQ:(ve.totalQ||0)+1,totalCorrect:(ve.totalCorrect||0)+(ok?1:0),cats:{...ve.cats,[activeCat]:{q:(ve.cats[activeCat]?.q||0)+1,c:(ve.cats[activeCat]?.c||0)+(ok?1:0)}}}},
-      cats:{...activeUser.cats,[activeCat]:{q:(activeUser.cats[activeCat]?.q||0)+1,c:(activeUser.cats[activeCat]?.c||0)+(ok?1:0)}},
-      history:[...((activeUser.history||[]).slice(-199)),{ts:Date.now(),cat:activeCat,variant:vKey,correct:ok,question:(quiz.question||"").slice(0,60)}],
-      handLog:[...((activeUser.handLog||[]).slice(-499)),{ts:Date.now(),cat:activeCat,variant:vKey,correct:ok,question:quiz.question,yourAnswer:quiz.options?.[idx],hintUsed}],
-    };
-    setActiveUser(updated); persist(updated);
-    if(sessionMode){const na=[...sessionAnswers,{correct:ok,question:quiz.question}];setSessionAnswers(na);if(na.length>=SESSION_SIZE)setSessionDone(true);}
-  }
-
-  if(screen==="select") return <UserSelect users={users} onSelect={doSelectUser} onAddUser={handleAddUser}/>;
-  if(sessionDone) return <div style={{minHeight:"100vh",background:"#020617",color:"#e2e8f0",padding:24,maxWidth:600,margin:"0 auto"}}><SessionReport sessionData={{answers:sessionAnswers,cat:activeCat}} onDone={()=>{setSessionMode(false);setSessionDone(false);setSessionAnswers([]);fetchQuiz(activeCat);}}/></div>;
-
-  const p=activeUser;
-  const tQ=p?.totalQ||0,tC=p?.totalCorrect||0;
-  const aVK=gameVariant==="Omaha"?"omaha":gameVariant==="Hold'em"?"holdem":null;
-  const bvA=aVK?(p?.byVariant?.[aVK]||{totalQ:0,totalCorrect:0,cats:emptyCats()}):null;
-  const dQ=bvA?bvA.totalQ:tQ,dC=bvA?bvA.totalCorrect:tC;
-  const dPct=dQ?Math.round((dC/dQ)*100):0;
-  const dCol=dPct>=70?"#22c55e":dPct>=40?"#f59e0b":"#f87171";
-  const cCats=bvA?bvA.cats:p?.cats||{};
-  const catQ=cCats[activeCat]?.q||0,catC=cCats[activeCat]?.c||0;
-  const catPct=catQ?Math.round((catC/catQ)*100):null;
-  const TOOLS=[{id:"equity",label:"Equity Calc"},{id:"range",label:"Range Chart"},{id:"bankroll",label:"Bankroll"},{id:"leaderboard",label:"Leaderboard"},{id:"handlog",label:"Hand Log"}];
-
-  return (
-    <div style={{minHeight:"100vh",background:BG,color:TEXT,fontFamily:"system-ui,sans-serif",display:"flex",flexDirection:"column"}}>
-      {showAnalytics&&<Analytics profile={{...p}} onClose={()=>setShowAnalytics(false)}/>}
-      {showHandAnalyzer&&<HandAnalyzer onClose={()=>setShowHandAnalyzer(false)}/>}
-
-      {/* Top Bar */}
-      <div style={{background:BG2,borderBottom:"1px solid "+BORDER,padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,"+TEAL_DARK+","+TEAL+")",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#fff",flexShrink:0}}>{p?.name?.[0]?.toUpperCase()}</div>
-          <div><div style={{fontSize:13,fontWeight:700,color:TEXT}}>{p?.name}</div><div style={{fontSize:10,color:MUTED}}>Upgrade Poker Coach</div></div>
+async function calcEquity() {
+  const h1=document.getElementById('eq-h1')?.value||'', h2=document.getElementById('eq-h2')?.value||'', board=document.getElementById('eq-board')?.value||'';
+  const res=document.getElementById('eq-result'); if(!res) return;
+  res.innerHTML='<div style="color:#555;font-size:13px">Calculating...</div>';
+  try {
+    const t=await callClaude(`Poker equity calculator. Respond ONLY valid JSON: {"hand1":{"cards":"Ah Kd","equity":47.3,"description":"AK high"},"hand2":{"cards":"Qh Qc","equity":52.7,"description":"Overpair"},"ties":0.5,"analysis":"2-3 sentences."}`,`Hand 1: ${h1}\nHand 2: ${h2}\nBoard: ${board||'none'}`);
+    const r=JSON.parse(t.replace(/```json|```/g,'').trim());
+    let html='';
+    [{h:r.hand1,col:'#7dd3fc'},{h:r.hand2,col:'#f9a8d4'}].forEach(item=>{
+      html+=`<div style="background:#111;border-radius:10px;padding:11px;border:1px solid #1a1a1a;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:13px;font-family:monospace;color:${item.col};font-weight:700">${item.h.cards}</span>
+          <span style="font-size:18px;font-weight:800;color:${item.h.equity>=50?'#4ade80':'#f87171'}">${item.h.equity}%</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-          {streak>=2&&<div style={{background:"rgba(26,154,154,0.15)",border:"1px solid "+TEAL,borderRadius:16,padding:"3px 9px",fontSize:11,color:TEAL}}>🔥 {streak}</div>}
-          <div style={{background:"rgba(26,154,154,0.1)",border:"1px solid "+BORDER_T,borderRadius:16,padding:"4px 10px",fontSize:11,color:TEAL,fontWeight:600}}>{dC}/{dQ} <span style={{color:dCol}}>({dPct}%)</span>{aVK&&<span style={{color:MUTED,marginLeft:4,fontSize:10}}>{gameVariant}</span>}</div>
-          <button onClick={()=>setShowHandAnalyzer(true)} style={{background:"rgba(26,154,154,0.1)",border:"1px solid "+BORDER_T,borderRadius:16,padding:"4px 12px",fontSize:11,color:TEAL,cursor:"pointer",fontWeight:600}}>Analyze Hand</button>
-          <button onClick={()=>setShowAnalytics(true)} style={{background:"rgba(26,154,154,0.1)",border:"1px solid "+BORDER_T,borderRadius:16,padding:"4px 12px",fontSize:11,color:TEAL,cursor:"pointer",fontWeight:600}}>Stats</button>
-          <button onClick={()=>setScreen("select")} style={{background:"transparent",border:"1px solid "+BORDER,borderRadius:16,padding:"4px 10px",fontSize:11,color:MUTED,cursor:"pointer"}}>Switch</button>
-        </div>
-      </div>
-
-      {/* Main Tabs */}
-      <div style={{display:"flex",borderBottom:"1px solid "+BORDER,background:BG2}}>
-        {[{id:"quiz",label:"Training"},{id:"tools",label:"Tools"}].map(t=>(
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{flex:1,padding:"12px",border:"none",background:"transparent",color:tab===t.id?TEAL:MUTED,fontSize:13,fontWeight:tab===t.id?700:400,cursor:"pointer",borderBottom:tab===t.id?"2px solid "+TEAL:"2px solid transparent",fontFamily:"inherit"}}>{t.label}</button>
-        ))}
-      </div>
-
-      {/* Tools Tab */}
-      {tab==="tools"&&(
-        <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-          <div style={{display:"flex",gap:4,padding:"10px 14px",overflowX:"auto",background:BG2,borderBottom:"1px solid "+BORDER}}>
-            {TOOLS.map(t=><button key={t.id} onClick={()=>setToolTab(t.id)} style={{whiteSpace:"nowrap",padding:"7px 14px",borderRadius:10,border:"none",cursor:"pointer",fontSize:11,fontWeight:600,background:toolTab===t.id?TEAL:"rgba(255,255,255,0.04)",color:toolTab===t.id?"#fff":MUTED,fontFamily:"inherit"}}>{t.label}</button>)}
-          </div>
-          <div style={{flex:1,padding:"18px 16px",maxWidth:680,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
-            {toolTab==="equity"&&<EquityCalc/>}
-            {toolTab==="range"&&<RangeChart/>}
-            {toolTab==="bankroll"&&<BankrollTracker userId={p?.id}/>}
-            {toolTab==="leaderboard"&&<Leaderboard users={users} currentUserId={p?.id}/>}
-            {toolTab==="handlog"&&<HandLog handLog={p?.handLog||[]}/>}
-          </div>
-        </div>
-      )}
-
-      {/* Training Tab */}
-      {tab==="quiz"&&(
-        <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-          <div style={{background:BG2,borderBottom:"2px solid "+BORDER}}>
-            <CPRow label="Game">
-              <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-                <SegControl options={["Hold'em","Omaha","Mixed"]} value={gameVariant} onChange={setGameVariant}/>
-                <div style={{marginLeft:"auto"}}><Toggle on={showPotOdds} onChange={setShowPotOdds} label="Pot Odds"/></div>
-              </div>
-            </CPRow>
-            <CPRow label="Format">
-              <div style={{display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-                <SegControl options={["Cash","Tournament"]} value={gameType} onChange={setGameType}/>
-                {gameType==="Tournament"&&<span style={{fontSize:11,color:TEAL,opacity:0.85}}>ICM · Stack depth · Bubble pressure</span>}
-                <div style={{marginLeft:"auto",flexShrink:0}}>
-                  {!sessionMode
-                    ?<button onClick={()=>{setSessionMode(true);setSessionAnswers([]);setSessionDone(false);fetchQuiz(activeCat);}} style={{padding:"8px 16px",borderRadius:8,background:"rgba(26,154,154,0.12)",border:"1px solid "+BORDER_T,color:TEAL,fontSize:12,cursor:"pointer",fontWeight:600,whiteSpace:"nowrap"}}>Session ({SESSION_SIZE})</button>
-                    :<div style={{padding:"8px 16px",borderRadius:8,background:"rgba(26,154,154,0.2)",border:"1px solid "+TEAL,color:TEAL,fontSize:12,fontWeight:700}}>{sessionAnswers.length}/{SESSION_SIZE}</div>
-                  }
-                </div>
-              </div>
-            </CPRow>
-            <CPRow label="Focus">
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {STREET_CATS.map(c=>{
-                  const active=activeCat===c.id;
-                  const cq=cCats[c.id]?.q||0,cc2=cCats[c.id]?.c||0;
-                  const cs=cq>=1?Math.round((cc2/cq)*100):null;
-                  return <button key={c.id} onClick={()=>setActiveCat(c.id)} style={{padding:"10px 22px",borderRadius:10,border:"1px solid "+(active?TEAL:BORDER),cursor:"pointer",fontSize:13,fontWeight:active?700:400,background:active?TEAL:"transparent",color:active?"#fff":MUTED,fontFamily:"inherit",display:"flex",alignItems:"center",gap:8,transition:"all 0.15s"}}>
-                    {c.label}
-                    {cs!==null&&<span style={{fontSize:10,background:active?"rgba(0,0,0,0.3)":"rgba(255,255,255,0.07)",borderRadius:8,padding:"2px 8px",color:cs>=70?"#4ade80":cs>=40?"#facc15":"#f87171",fontWeight:600}}>{cs}%</span>}
-                  </button>;
-                })}
-              </div>
-            </CPRow>
-            <CPRow label="Settings" noBorder={true}>
-              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-                <div style={{display:"flex",flexDirection:"column",gap:6,flex:"1 1 140px",minWidth:140}}>
-                  <span style={{fontSize:11,color:MUTED}}>Difficulty</span>
-                  <select value={difficulty} onChange={e=>setDifficulty(e.target.value)} style={{padding:"9px 12px",borderRadius:8,background:BG3,border:"1px solid "+BORDER,color:TEXT2,fontSize:13,cursor:"pointer",outline:"none"}}>
-                    {DIFFICULTIES.map(d=><option key={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:6,flex:"1 1 160px",minWidth:160}}>
-                  <span style={{fontSize:11,color:MUTED}}>Villain Type</span>
-                  <select value={villain} onChange={e=>setVillain(e.target.value)} style={{padding:"9px 12px",borderRadius:8,background:BG3,border:"1px solid "+BORDER,color:TEXT2,fontSize:13,cursor:"pointer",outline:"none"}}>
-                    {ARCHETYPES.map(a=><option key={a}>{a}</option>)}
-                  </select>
-                </div>
-              </div>
-            </CPRow>
-          </div>
-
-          {/* Quiz Content */}
-          <div style={{flex:1,padding:"16px",display:"flex",flexDirection:"column",gap:14,maxWidth:700,margin:"0 auto",width:"100%",boxSizing:"border-box"}}>
-            {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"50px 0",gap:14}}>
-              <div style={{fontSize:40,color:TEAL,animation:"spin 1.2s linear infinite",display:"inline-block"}}>♠</div>
-              <div style={{color:MUTED,fontSize:13}}>Shuffling scenario...</div>
-              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            </div>}
-            {quiz?.error&&!loading&&(
-              <div style={{textAlign:"center",padding:40}}>
-                <div style={{color:"#f87171",marginBottom:8,fontSize:14}}>Failed to load scenario</div>
-                {quizError&&<div style={{color:MUTED,fontSize:12,marginBottom:16,lineHeight:1.6,wordBreak:"break-word"}}>{quizError}</div>}
-                <button onClick={()=>fetchQuiz(activeCat)} style={{color:TEAL,background:"none",border:"1px solid "+BORDER_T,borderRadius:8,cursor:"pointer",padding:"8px 20px",fontSize:13}}>Retry</button>
-              </div>
-            )}
-            {quiz&&!quiz.error&&!loading&&<>
-              <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                {[quiz.variant,quiz.gameType,quiz.street,"Pos: "+(quiz.heroPosition||"—"),"vs "+villain,difficulty].map((t,i)=>(
-                  <span key={i} style={{fontSize:10,padding:"3px 8px",borderRadius:9,background:i===0?"rgba(26,154,154,0.2)":"rgba(255,255,255,0.04)",color:i===0?TEAL:MUTED,border:i===0?"1px solid "+BORDER_T:"1px solid "+BORDER,fontWeight:600}}>{t}</span>
-                ))}
-                {catPct!==null&&<span style={{marginLeft:"auto",fontSize:10,color:catPct>=70?"#4ade80":catPct>=40?"#facc15":"#f87171",fontWeight:600}}>{catPct}% this category</span>}
-              </div>
-              <div style={{background:BG2,borderRadius:14,border:"1px solid "+BORDER,padding:"12px 6px 6px"}}><PokerTable quiz={quiz} numSeats={quiz.numSeats||8}/></div>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                {[{l:"Street",v:quiz.street,c:TEAL},{l:"Pos",v:quiz.heroPosition||"—",c:"#fff"},{l:"Pot",v:quiz.potDisplay||"—",c:"#facc15"},{l:"Blinds",v:quiz.blinds||"1/2",c:"#4ade80"}].map(s=>(
-                  <div key={s.l} style={{flex:1,minWidth:60,background:BG3,borderRadius:8,padding:"8px 10px",border:"1px solid "+BORDER}}>
-                    <div style={{fontSize:9,color:MUTED,textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>{s.l}</div>
-                    <div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{background:BG3,border:"1px solid "+BORDER,borderRadius:10,padding:"11px 14px",fontSize:13,color:TEXT2,lineHeight:1.7}}>{quiz.scenario}</div>
-              <div style={{fontSize:15,fontWeight:700,color:TEXT,lineHeight:1.5}}>{quiz.question}</div>
-              {quiz.potOdds&&(
-                <div style={{borderRadius:10,border:"1px solid "+(showPotOdds?TEAL:BORDER),background:showPotOdds?"rgba(26,154,154,0.07)":BG3,padding:"12px 14px",transition:"all 0.25s"}}>
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:showPotOdds?10:0}}>
-                    <span style={{fontSize:11,color:showPotOdds?TEAL:MUTED,fontWeight:700,textTransform:"uppercase",letterSpacing:0.8}}>Pot Odds — {showPotOdds?"Revealed":"Hidden"}</span>
-                    <Toggle on={showPotOdds} onChange={setShowPotOdds}/>
-                  </div>
-                  {showPotOdds?(
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
-                      {[{l:"Pot Size",v:quiz.potOdds.potSize,c:"#facc15"},{l:"Call Amount",v:quiz.potOdds.callAmount,c:"#f87171"},{l:"Odds Ratio",v:quiz.potOdds.oddsRatio,c:TEAL},{l:"Break-even",v:quiz.potOdds.breakEvenPct,c:"#4ade80"}].map(s=>(
-                        <div key={s.l} style={{background:"rgba(0,0,0,0.3)",borderRadius:8,padding:"8px 10px"}}>
-                          <div style={{fontSize:9,color:MUTED,textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>{s.l}</div>
-                          <div style={{fontSize:15,fontWeight:700,color:s.c,fontFamily:"monospace"}}>{s.v}</div>
-                        </div>
-                      ))}
-                      <div style={{gridColumn:"1/-1",fontSize:11,color:TEXT2,lineHeight:1.6}}><span style={{color:TEAL,fontWeight:600}}>Implied: </span>{quiz.potOdds.impliedOdds}</div>
-                      <div style={{gridColumn:"1/-1",fontSize:12,color:quiz.potOdds.recommendation?.toLowerCase().includes("call")?"#4ade80":"#f87171",fontWeight:600}}>Math says: {quiz.potOdds.recommendation}</div>
-                    </div>
-                  ):<div style={{fontSize:11,color:TEXT3,marginTop:6}}>Calculate the odds yourself first — then toggle to check</div>}
-                </div>
-              )}
-              {selected===null&&(!hintUsed
-                ?<button onClick={getHint} disabled={hintLoading} style={{alignSelf:"flex-start",padding:"7px 16px",borderRadius:8,background:"rgba(26,154,154,0.08)",border:"1px solid "+BORDER_T,color:TEAL,fontSize:12,cursor:"pointer",fontWeight:600}}>{hintLoading?"...":"Show Hint"}</button>
-                :<div style={{fontSize:12,color:TEAL,background:"rgba(26,154,154,0.08)",borderRadius:8,padding:"8px 12px",border:"1px solid "+BORDER_T,lineHeight:1.5}}>Hint: {hint}</div>
-              )}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {quiz.options?.map((opt,i)=>{
-                  const isCor=i===quiz.correctIndex,isSel=i===selected;
-                  let bg=BG3,border="1px solid "+BORDER,col=TEXT2,icon=null;
-                  if(selected!==null){if(isCor){bg="rgba(74,222,128,0.1)";border="1px solid #4ade80";col="#4ade80";icon="✓";}else if(isSel){bg="rgba(248,113,113,0.1)";border="1px solid #f87171";col="#f87171";icon="✗";}else col=MUTED;}
-                  return <button key={i} onClick={()=>handleAnswer(i)} style={{textAlign:"left",padding:"12px 14px",borderRadius:10,background:bg,border,color:col,fontSize:13,cursor:selected===null?"pointer":"default",transition:"all 0.15s",fontFamily:"inherit",display:"flex",alignItems:"center",gap:8,lineHeight:1.4}}>
-                    <span style={{fontWeight:700,fontSize:11,opacity:0.7,flexShrink:0}}>{icon||String.fromCharCode(65+i)}</span>{opt}
-                  </button>;
-                })}
-              </div>
-              {selected!==null&&<div style={{borderRadius:10,padding:"13px 15px",background:selected===quiz.correctIndex?"rgba(74,222,128,0.08)":"rgba(248,113,113,0.08)",border:"1px solid "+(selected===quiz.correctIndex?"#166534":"#991b1b"),fontSize:13,color:TEXT2,lineHeight:1.7}}>
-                <div style={{fontWeight:700,color:selected===quiz.correctIndex?"#4ade80":"#f87171",marginBottom:5,fontSize:14}}>{selected===quiz.correctIndex?"Correct!":"Incorrect"}</div>
-                {quiz.explanation}
-              </div>}
-              {selected!==null&&<button onClick={()=>fetchQuiz(activeCat)} style={{padding:"13px",borderRadius:10,background:"linear-gradient(135deg,"+TEAL_DARK+","+TEAL+")",border:"none",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>Next Hand</button>}
-            </>}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+        <div style="height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden"><div style="width:${item.h.equity}%;height:100%;background:${item.h.equity>=50?'#4ade80':'#f87171'};border-radius:3px"></div></div>
+        <div style="font-size:11px;color:#444;margin-top:5px">${item.h.description}</div>
+      </div>`;
+    });
+    html+=`<div style="background:rgba(26,154,154,0.06);border-radius:10px;padding:11px;border:1px solid #1a9a9a44;font-size:12px;color:#aaa;line-height:1.7">${r.analysis}</div>`;
+    res.innerHTML=html;
+  } catch(e){res.innerHTML=`<div style="color:#f87171;font-size:13px">Failed: ${e.message}</div>`;}
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+function renderBankroll() {
+  const id=state.user?.id; if(!id) return '';
+  const sessions=S.get('upc:br:'+id)||[];
+  const total=sessions.reduce((a,s)=>a+s.profit,0);
+  const wins=sessions.filter(s=>s.profit>0).length;
+  let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">`;
+  [{l:'Profit',v:(total>=0?'+':'')+total.toFixed(2),c:total>=0?'#4ade80':'#f87171'},{l:'Sessions',v:sessions.length,c:'#1a9a9a'},{l:'Win Rate',v:sessions.length?Math.round((wins/sessions.length)*100)+'%':'—',c:'#facc15'}].forEach(s=>{
+    html+=`<div style="background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a"><div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div><div style="font-size:16px;font-weight:700;color:${s.c}">${s.v}</div></div>`;
+  });
+  html+=`</div>
+  <div style="background:#111;border-radius:12px;padding:12px;border:1px solid #1a1a1a;margin-bottom:12px">
+    <div style="font-size:10px;color:#444;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Log Session</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Date</div><input type="date" id="br-date" value="${new Date().toISOString().slice(0,10)}" class="inp"/></div>
+      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Game</div><input id="br-game" placeholder="1/2 NL" class="inp"/></div>
+      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Buy-in ($)</div><input type="number" id="br-buyin" placeholder="200" class="inp"/></div>
+      <div><div style="font-size:10px;color:#444;margin-bottom:3px">Cash-out ($)</div><input type="number" id="br-cashout" placeholder="350" class="inp"/></div>
+    </div>
+    <input id="br-notes" placeholder="Notes..." class="inp" style="margin-bottom:8px"/>
+    <button class="btn" onclick="addSession()">Add Session</button>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">`;
+  [...sessions].reverse().forEach((s,i)=>{
+    html+=`<div style="display:flex;align-items:center;gap:8px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a">
+      <div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:600">${s.date}${s.game?' · <span style="color:#555;font-weight:400">'+s.game+'</span>':''}</div>${s.notes?`<div style="font-size:11px;color:#444">${s.notes}</div>`:''}</div>
+      <div style="font-size:13px;font-weight:700;color:${s.profit>=0?'#4ade80':'#f87171'}">${s.profit>=0?'+':''}${s.profit.toFixed(2)}</div>
+    </div>`;
+  });
+  if (!sessions.length) html+=`<div style="font-size:12px;color:#222;text-align:center;padding:20px">No sessions yet.</div>`;
+  html+=`</div>`;
+  return html;
+}
+
+function addSession() {
+  const id=state.user?.id; if(!id) return;
+  const buyin=parseFloat(document.getElementById('br-buyin')?.value||'0');
+  const cashout=parseFloat(document.getElementById('br-cashout')?.value||'0');
+  if(!buyin||!cashout) return;
+  const sessions=S.get('upc:br:'+id)||[];
+  sessions.push({id:Date.now(),date:document.getElementById('br-date')?.value||'',game:document.getElementById('br-game')?.value||'',buyin,cashout,profit:cashout-buyin,notes:document.getElementById('br-notes')?.value||''});
+  sessions.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  S.set('upc:br:'+id, sessions);
+  setTool('bankroll');
+}
+
+function renderHandLog() {
+  const log=(state.user?.handLog||[]).slice().reverse();
+  let html=`<input class="inp" id="hl-search" placeholder="Search hands..." oninput="filterHandLog()" style="margin-bottom:10px"/>
+  <div id="hl-list" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto">`;
+  log.forEach(h=>{
+    html+=`<div style="background:#111;border-radius:8px;padding:9px 11px;border:1px solid #1a1a1a">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+        <span style="color:${h.correct?'#4ade80':'#f87171'};font-size:11px">${h.correct?'✓':'✗'}</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,0.05);color:#444;text-transform:capitalize">${h.cat}</span>
+        <span style="font-size:10px;color:#222;margin-left:auto">${new Date(h.ts).toLocaleDateString()}</span>
+      </div>
+      <div style="font-size:12px;color:#aaa;line-height:1.5">${h.question||''}</div>
+      ${h.yourAnswer?`<div style="font-size:11px;color:${h.correct?'#86efac':'#fca5a5'};margin-top:3px">You: ${h.yourAnswer}</div>`:''}
+    </div>`;
+  });
+  if(!log.length) html+=`<div style="font-size:12px;color:#222;text-align:center;padding:20px">No hands logged yet.</div>`;
+  html+=`</div>`;
+  return html;
+}
+
+function filterHandLog() {
+  const q=(document.getElementById('hl-search')?.value||'').toLowerCase();
+  const log=(state.user?.handLog||[]).filter(h=>(h.question||'').toLowerCase().includes(q)).reverse();
+  const list=document.getElementById('hl-list'); if(!list) return;
+  let html='';
+  log.forEach(h=>{
+    html+=`<div style="background:#111;border-radius:8px;padding:9px 11px;border:1px solid #1a1a1a">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+        <span style="color:${h.correct?'#4ade80':'#f87171'};font-size:11px">${h.correct?'✓':'✗'}</span>
+        <span style="font-size:10px;padding:1px 7px;border-radius:7px;background:rgba(255,255,255,0.05);color:#444;text-transform:capitalize">${h.cat}</span>
+        <span style="font-size:10px;color:#222;margin-left:auto">${new Date(h.ts).toLocaleDateString()}</span>
+      </div>
+      <div style="font-size:12px;color:#aaa;line-height:1.5">${h.question||''}</div>
+    </div>`;
+  });
+  list.innerHTML = html || `<div style="font-size:12px;color:#222;text-align:center;padding:20px">No results.</div>`;
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').style.display = 'none';
+}
 </script>
 </body>
 </html>

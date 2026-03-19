@@ -428,6 +428,20 @@ function classifyHand(c1,c2) {
   return 'marginal hand';
 }
 
+// Hands that are always obvious folds — skip them and redeal
+function isUsableHand(c1,c2) {
+  const r1=RANKS.indexOf(c1.rank),r2=RANKS.indexOf(c2.rank);
+  const isPair=c1.rank===c2.rank,isSuited=c1.suit===c2.suit;
+  const hi=Math.max(r1,r2),lo=Math.min(r1,r2),gap=hi-lo;
+  // Always skip: pure trash offsuit with no redeeming features
+  // 72o, 73o, 83o, 62o, 52o, 42o, 32o etc.
+  if(!isPair && !isSuited && hi<=7 && gap>=4) return false; // e.g. 72o, 73o
+  if(!isPair && !isSuited && hi<=6) return false;           // e.g. 62o, 52o, 42o
+  if(!isPair && !isSuited && hi<=8 && lo<=3) return false;  // e.g. 83o, 82o
+  // Keep everything else — even weak aces, small pairs, suited trash have interesting spots
+  return true;
+}
+
 // ── Fetch quiz ────────────────────────────────────────────────────
 const recentHands = [];
 async function fetchQuiz() {
@@ -440,11 +454,19 @@ async function fetchQuiz() {
     const deck = shuffleDeck();
     const isOmaha = state.variant==='mixed' ? Math.random()>0.5 : state.variant==='omaha';
     const vName = isOmaha ? 'Omaha' : 'Texas Holdem';
-    const cards = isOmaha ? deck.slice(0,4) : deck.slice(0,2);
-    const board = deck.slice(isOmaha?4:2, isOmaha?9:7);
+
+    // Keep redealing until we get a hand worth building a scenario around
+    let cards, board, tier;
+    let attempts = 0;
+    do {
+      const d = shuffleDeck();
+      cards = isOmaha ? d.slice(0,4) : d.slice(0,2);
+      board = d.slice(isOmaha?4:2, isOmaha?9:7);
+      tier = classifyHand(cards[0], cards[1]);
+      attempts++;
+    } while (!isUsableHand(cards[0], cards[1]) && attempts < 20);
     const tier = classifyHand(cards[0], cards[1]);
     const holeStr = cards.map(c=>c.rank+c.suit).join(' ');
-    const boardStr = board.map(c=>c.rank+c.suit).join(' ');
     const isTourney = state.format==='tournament';
     const seats = [6,7,8,8,8][Math.floor(Math.random()*5)];
     const stack = [50,100,150,200,300,500][Math.floor(Math.random()*6)];
@@ -462,9 +484,9 @@ async function fetchQuiz() {
     };
     const sh = hintMap[state.cat][Math.floor(Math.random()*hintMap[state.cat].length)];
     const diffMap = {
-      Beginner:'BEGINNER: Clear best action. Wrong answers obviously bad. No tricky spots.',
-      Intermediate:'INTERMEDIATE: Genuinely difficult decision. Wrong answers plausible but incorrect.',
-      Advanced:'ADVANCED: Solver-level. Counter-intuitive answer. All options seem reasonable.'
+      Beginner: `BEGINNER DIFFICULTY: Generate a scenario where the correct answer is clear to anyone with basic poker knowledge. Rules: (1) Use strong hands where the right play is obvious — top pair good kicker, strong draws, premium pairs. (2) Wrong answer options must be clearly bad — massive overbets, obvious folds with strong hands, calling with no equity. (3) NO marginal spots, thin value decisions, or multi-street bluffs. (4) The scenario should teach a basic fundamental concept.`,
+      Intermediate: `INTERMEDIATE DIFFICULTY: Generate a genuinely difficult decision that intermediate players commonly get wrong. Rules: (1) Use spots requiring pot odds calculation, position awareness, or range thinking. (2) All 4 answer options should seem plausible to a casual player — only one is correct. (3) Good scenario types: thin value vs bluff on river, 3-bet pot decisions with medium-strength hands, draw decisions with implied odds, squeeze spots, check-raise opportunities. (4) AVOID trivially obvious spots — if a beginner would get it right, make it harder.`,
+      Advanced: `ADVANCED DIFFICULTY: Generate a solver-level spot that even experienced players struggle with. Rules: (1) The correct answer must be counter-intuitive or require GTO reasoning — e.g. checking back top pair for pot control, over-folding to exploit a passive player, bluffing with a made hand, mixing strategies. (2) ALL FOUR answer options must seem reasonable to an experienced player — the wrong answers should be things a strong reg might do. (3) Good scenario types: polarized range spots, ICM pressure folds, thin exploitative adjustments, complex board texture decisions, range advantage situations. (4) Include GTO reasoning in the explanation.`
     };
     const legalNote = 'LEGAL ACTIONS: If SB limps into BB, options are Check or Raise ONLY (no fold, no call). If facing raise: Fold/Call/Raise. If first to act preflop: Fold/Limp/Raise. If checked to: Check/Bet. NEVER include illegal actions.';
     const recent = recentHands.slice(-5).join(', ');

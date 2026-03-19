@@ -495,37 +495,37 @@ function tableHTML(quiz) {
   const posLabels = quiz.allPositions || POS8.slice(0, seats);
   const heroPos   = quiz.heroPosition || '';
   const stackSizes = quiz.stackSizes || [];
+  const bets = quiz.bets || {};
 
   let inner = `<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+12}" ry="${ry+12}" fill="#1a4a2e"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx-4}" ry="${ry-4}" fill="#2d7a4a"/>`;
 
-  // Community cards in center — always show if we have them
+  // Community cards in center
   const cc = quiz.communityCards || [];
   if (cc.length > 0) {
-    const cardW=28, cardH=40, gap=4;
+    const cardW=32, cardH=46, gap=5;
     const totalW = cc.length * cardW + (cc.length-1) * gap;
     const startX = cx - totalW/2;
+    const cardY = cy - cardH/2;
     cc.forEach((c, i) => {
-      const cxc = startX + i*(cardW+gap);
+      const cx2 = startX + i*(cardW+gap);
       const isRed = c.suit==='h'||c.suit==='d';
       const sym = {s:'♠',h:'♥',d:'♦',c:'♣'}[c.suit]||c.suit;
-      inner += `<rect x="${cxc}" y="${cy-20}" width="${cardW}" height="${cardH}" rx="3" fill="white"/>
-        <text x="${cxc+4}" y="${cy-7}" font-size="9" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif">${c.rank}</text>
-        <text x="${cxc+14}" y="${cy+4}" font-size="12" text-anchor="middle" fill="${isRed?'#dc2626':'#1e293b'}">${sym}</text>
-        <text x="${cxc+24}" y="${cy+17}" font-size="9" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif" transform="rotate(180,${cxc+24},${cy+17})">${c.rank}</text>`;
+      inner += `<rect x="${cx2}" y="${cardY}" width="${cardW}" height="${cardH}" rx="4" fill="white" stroke="#ccc" stroke-width="0.5"/>
+        <text x="${cx2+4}" y="${cardY+11}" font-size="10" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif">${c.rank}</text>
+        <text x="${cx2+cardW/2}" y="${cardY+28}" font-size="14" text-anchor="middle" fill="${isRed?'#dc2626':'#1e293b'}">${sym}</text>
+        <text x="${cx2+cardW-4}" y="${cardY+cardH-4}" font-size="10" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif" text-anchor="end" transform="rotate(180,${cx2+cardW-4},${cardY+cardH-4})">${c.rank}</text>`;
     });
+    // Pot above cards
+    if (quiz.potDisplay && quiz.potDisplay !== '$0') {
+      inner += `<text x="${cx}" y="${cardY-8}" text-anchor="middle" fill="#fcd34d" font-size="11" font-weight="700" font-family="monospace">POT ${quiz.potDisplay}</text>`;
+    }
   } else if (quiz.potDisplay && quiz.potDisplay !== '$0') {
-    // Only show pot if no community cards
-    inner += `<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
+    inner += `<rect x="${cx-50}" y="${cy-16}" width="100" height="32" rx="8" fill="rgba(0,0,0,0.4)"/>
       <text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="600" font-family="monospace">POT</text>
       <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
-  }
-
-  // Show pot above community cards when cards are present
-  if (cc.length > 0 && quiz.potDisplay && quiz.potDisplay !== '$0') {
-    inner += `<text x="${cx}" y="${cy-30}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="700" font-family="monospace">POT ${quiz.potDisplay}</text>`;
   }
 
   // Draw seats
@@ -537,51 +537,66 @@ function tableHTML(quiz) {
     const stack  = stackSizes[i] || '';
     const isHero = label === heroPos;
     const isBtn  = label === 'BTN';
+    const betAmt = bets[String(i)] || bets[label] || null;
 
-    inner += `<circle cx="${x}" cy="${y}" r="${isHero?28:20}"
+    // Seat circle
+    inner += `<circle cx="${x}" cy="${y}" r="${isHero?28:22}"
       fill="${isHero?'#0d2a1a':'#0a0a0a'}"
       stroke="${isHero?'#1a9a9a':'#333'}"
-      stroke-width="${isHero?2:1.5}"/>`;
+      stroke-width="${isHero?2.5:1.5}"/>`;
 
+    // Dealer chip on BTN
     if (isBtn) {
-      inner += `<circle cx="${x+18}" cy="${y-18}" r="9" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
-        <text x="${x+18}" y="${y-14}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="700">D</text>`;
+      inner += `<circle cx="${x+20}" cy="${y-20}" r="10" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
+        <text x="${x+20}" y="${y-16}" text-anchor="middle" fill="#1c1917" font-size="10" font-weight="700">D</text>`;
     }
 
-    // Hero hole cards rendered AT the seat position
+    // Position label
+    inner += `<text x="${x}" y="${y+5}" text-anchor="middle"
+      fill="${isHero?'#1a9a9a':'#aaa'}"
+      font-size="${isHero?10:9}" font-weight="700">${label}</text>`;
+
+    // YOU label above seat
+    if (isHero) {
+      inner += `<text x="${x}" y="${y-16}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+    }
+
+    // Stack size below seat
+    if (stack) {
+      inner += `<text x="${x}" y="${y+(isHero?44:38)}" text-anchor="middle"
+        fill="#86efac" font-size="9" font-family="monospace">${stack}</text>`;
+    }
+
+    // Bet chip — positioned between seat and center of table
+    if (betAmt) {
+      const chipX = Math.round(x + (cx-x)*0.38);
+      const chipY = Math.round(y + (cy-y)*0.38);
+      inner += `<circle cx="${chipX}" cy="${chipY}" r="14" fill="#e11d48" stroke="#fff" stroke-width="1.5"/>
+        <circle cx="${chipX}" cy="${chipY}" r="11" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="3 2"/>
+        <text x="${chipX}" y="${chipY+4}" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" font-family="monospace">${betAmt}</text>`;
+    }
+
+    // Hero hole cards — rendered BELOW the hero seat, bigger and readable
     if (isHero && quiz.holeCards?.length) {
       const hc = quiz.holeCards;
-      const cw = 16, ch = 22, cgap = 3;
-      const totalCW = hc.length * cw + (hc.length-1) * cgap;
+      const cw=26, ch=37, cgap=4;
+      const totalCW = hc.length*cw + (hc.length-1)*cgap;
       const hcStartX = x - totalCW/2;
-      const hcY = y + 32;
+      const hcY = y + (stack ? 54 : 48);
       hc.forEach((c, ci) => {
         const hx = hcStartX + ci*(cw+cgap);
         const isRed = c.suit==='h'||c.suit==='d';
         const sym = {s:'♠',h:'♥',d:'♦',c:'♣'}[c.suit]||c.suit;
-        inner += `<rect x="${hx}" y="${hcY}" width="${cw}" height="${ch}" rx="2" fill="white" stroke="#94a3b8" stroke-width="0.5"/>
-          <text x="${hx+2}" y="${hcY+8}" font-size="6" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif">${c.rank}</text>
-          <text x="${hx+cw/2}" y="${hcY+16}" font-size="8" text-anchor="middle" fill="${isRed?'#dc2626':'#1e293b'}">${sym}</text>`;
+        inner += `<rect x="${hx}" y="${hcY}" width="${cw}" height="${ch}" rx="3" fill="white" stroke="#94a3b8" stroke-width="1"/>
+          <text x="${hx+3}" y="${hcY+10}" font-size="9" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif">${c.rank}</text>
+          <text x="${hx+cw/2}" y="${hcY+24}" font-size="13" text-anchor="middle" fill="${isRed?'#dc2626':'#1e293b'}">${sym}</text>
+          <text x="${hx+cw-3}" y="${hcY+ch-3}" font-size="9" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif" text-anchor="end" transform="rotate(180,${hx+cw-3},${hcY+ch-3})">${c.rank}</text>`;
       });
-    }
-
-    inner += `<text x="${x}" y="${y+4}" text-anchor="middle"
-      fill="${isHero?'#1a9a9a':'#888'}"
-      font-size="${isHero?9:8}" font-weight="600">${label}</text>`;
-
-    if (stack) {
-      inner += `<text x="${x}" y="${y+(isHero?18:28)}" text-anchor="middle"
-        fill="#86efac" font-size="7" font-family="monospace">${stack}</text>`;
-    }
-
-    if (isHero) {
-      inner += `<text x="${x}" y="${y-16}" text-anchor="middle"
-        fill="#1a9a9a" font-size="7" font-weight="700">YOU</text>`;
     }
   }
 
   return `<div style="max-width:600px;margin:0 auto">
-    <svg viewBox="0 0 600 320" style="width:100%;overflow:visible">${inner}</svg>
+    <svg viewBox="0 0 600 340" style="width:100%;overflow:visible">${inner}</svg>
   </div>`;
 }
 

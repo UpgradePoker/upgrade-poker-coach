@@ -139,7 +139,7 @@ const RI=Object.fromEntries(RANKS.map((r,i)=>[r,i]));
 const SUITS=['s','h','d','c'];
 const SYM={s:'♠',h:'♥',d:'♦',c:'♣'};
 
-// ── GTO Range Tables ───────────────────────────────────
+// ── GTO Ranges ─────────────────────────────────────────
 const NLRFI={
   UTG:new Set(['AA','KK','QQ','JJ','TT','99','88','77','AKs','AQs','AJs','ATs','A9s','AKo','AQo','AJo','ATo','KQs','KJs','KTs','K9s','KQo','KJo','QJs','QTs','Q9s','JTs','J9s','T9s','T8s','98s','97s','87s','86s','76s','75s','65s','54s']),
   MP: new Set(['AA','KK','QQ','JJ','TT','99','88','77','66','AKs','AQs','AJs','ATs','A9s','A8s','AKo','AQo','AJo','ATo','A9o','KQs','KJs','KTs','K9s','K8s','KQo','KJo','KTo','QJs','QTs','Q9s','Q8s','QJo','QTo','JTs','J9s','J8s','JTo','T9s','T8s','T7s','98s','97s','96s','87s','86s','85s','76s','75s','65s','64s','54s','53s','43s']),
@@ -174,7 +174,7 @@ const PLO_TIERS={
 
 // ── Helpers ────────────────────────────────────────────
 function mkDeck(){const d=RANKS.flatMap(r=>SUITS.map(s=>({rank:r,suit:s})));for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d;}
-function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
 function sfl(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 function hkey(c1,c2){const r1=RI[c1.rank],r2=RI[c2.rank];const hi=r1>=r2?c1:c2,lo=r1>=r2?c2:c1;if(hi.rank===lo.rank)return hi.rank+lo.rank;return hi.rank+lo.rank+(c1.suit===c2.suit?'s':'o');}
 function decodeKey(k){if(k.length===2)return[{rank:k[0],suit:'s'},{rank:k[0],suit:'h'}];return[{rank:k[0],suit:'s'},{rank:k[1],suit:k[2]==='s'?'s':'h'}];}
@@ -191,27 +191,49 @@ function cleanLabel(s){return s.replace(/\s*[\(\-\—][^)]*\)?$/,'').trim();}
 
 // ── Wrong option builders ──────────────────────────────
 function pfWrong(correct,itr,bb){
-  const cc=cleanLabel(correct);
-  const cv=cc.split(' ')[0].toLowerCase();
+  const cc=cleanLabel(correct),cv=cc.split(' ')[0].toLowerCase();
   const pool=[`Raise to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}`,`Raise to ${itr?'3bb':'$'+Math.round(bb*3)}`,`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`,`4-bet to ${itr?'22bb':'$'+Math.round(bb*22)}`,`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`,`Min-raise to ${itr?'2bb':'$'+Math.round(bb*2)}`,'Call','Complete','Fold'];
-  return sfl(pool.filter(o=>{if(cleanLabel(o)===cc)return false;return o.split(' ')[0].toLowerCase()!==cv;})).slice(0,3);
+  return sfl(pool.filter(o=>cleanLabel(o)!==cc&&cleanLabel(o).split(' ')[0].toLowerCase()!==cv)).slice(0,3);
 }
 function postWrong(correct,type){
-  const cc=cleanLabel(correct);
-  const cv=cc.split(' ')[0].toLowerCase();
-  const pools={
-    cbet:  ['Bet 25% pot','Bet 50% pot','Bet 75% pot','Bet 100% pot','Check','Check-raise','Fold'],
-    facing:['Fold','Call','Check-raise','Check-raise all-in','Check'],
-    turn:  ['Bet 33% pot','Bet 50% pot','Bet 66% pot','Bet 100% pot','Check','Fold','All-in'],
-    river: ['Bet 33% pot','Bet 50% pot','Bet 66% pot','Bet 100% pot','Check','Fold','All-in'],
-    bluff: ['Bet 50% pot','Bet 100% pot','Overbet 150% pot','Check','Fold','All-in'],
-    semib: ['Fold','Call','Check-raise','Check-raise all-in','Check','All-in']
-  };
-  const pool=(pools[type]||pools.cbet);
-  return sfl(pool.filter(o=>{if(cleanLabel(o)===cc)return false;return cleanLabel(o).split(' ')[0].toLowerCase()!==cv;})).slice(0,3);
+  const cc=cleanLabel(correct),cv=cc.split(' ')[0].toLowerCase();
+  const pools={cbet:['Bet 25% pot','Bet 50% pot','Bet 75% pot','Bet 100% pot','Check','Check-raise','Fold'],facing:['Fold','Call','Check-raise','Check-raise all-in','Check'],turn:['Bet 33% pot','Bet 50% pot','Bet 66% pot','Bet 100% pot','Check','Fold','All-in'],river:['Bet 33% pot','Bet 50% pot','Bet 66% pot','Bet 100% pot','Check','Fold','All-in'],bluff:['Bet 50% pot','Bet 100% pot','Overbet 150% pot','Check','Fold','All-in'],semib:['Fold','Call','Check-raise','Check-raise all-in','Check','All-in']};
+  return sfl((pools[type]||pools.cbet).filter(o=>cleanLabel(o)!==cc&&cleanLabel(o).split(' ')[0].toLowerCase()!==cv)).slice(0,3);
 }
 
-// ── Scenario builders ──────────────────────────────────
+// ── NLH Preflop scenarios ──────────────────────────────
+const NLH_PF=[
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['UTG','MP','HJ','CO','BTN','SB']);const range=NLRFI[pos]||NLRFI.HJ;const inR=Math.random()>0.3;const cards=inR?drawFrom(range):drawFrom(new Set(sfl([...NLRFI.BTN].filter(k=>!range.has(k)))));const key=hkey(cards[0],cards[1]);const correct=inR?`Raise to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}`:'Fold';return{cards,heroPos:pos,allPos,seats,board:[],street:'Preflop',pfHist:`Folds to hero in ${pos}.`,pot:itr?`${Math.round(bb*1.5)}bb`:`$${Math.round(bb*1.5)}`,callAmt:'0',blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — ${inR?'✓ In RFI range for '+pos:'✗ Outside RFI range for '+pos}`,pfCtx:`Hero in ${pos} with ${key}. Folds to hero. GTO: raise or fold only. Stack: ${stackStr}.`,label:`Preflop: RFI from ${pos}`};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const opMap={UTG:['MP','HJ','CO','BTN','BB'],MP:['HJ','CO','BTN','BB'],HJ:['CO','BTN','BB'],CO:['BTN','BB'],BTN:['BB']};const op=rnd(['UTG','MP','HJ','CO','BTN']);const hero=rnd(opMap[op]);const thr=NL3BET['vs'+op]||NL3BET.vsCO;const cal=NLCALL['vs'+op]||NLCALL.vsCO;const roll=Math.random();let cards,correct;if(roll<0.35){cards=drawFrom(thr);correct=`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`;}else if(roll<0.7){cards=drawFrom(cal);correct='Call';}else{const fp=sfl([...NLRFI.BTN].filter(k=>!thr.has(k)&&!cal.has(k)));cards=decodeKey(fp[0]||'72o');correct='Fold';}const key=hkey(cards[0],cards[1]);return{cards,heroPos:hero,allPos,seats,board:[],street:'Preflop',pfHist:`${op} opens to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}. Folds to hero in ${hero}.`,pot:itr?`${bb*4}bb`:`$${Math.round(bb*4)}`,callAmt:itr?`${bb*2.5}bb`:`$${Math.round(bb*2.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — vs ${op} open: ${correct}`,pfCtx:`${op} opens. Hero in ${hero} with ${key}. Single open only. Stack: ${stackStr}.`,label:`Preflop: ${hero} facing ${op} open`};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['UTG','MP','HJ','CO','BTN']);const cards=drawFrom(NLRFI[pos]||NLRFI.HJ);const key=hkey(cards[0],cards[1]);const is4=['AA','KK','QQ','JJ','AKs','AKo','A5s','A4s','A3s'].includes(key);const correct=is4?`4-bet to ${itr?'22bb':'$'+Math.round(bb*22)}`:'Fold';return{cards,heroPos:pos,allPos,seats,board:[],street:'Preflop',pfHist:`Hero opens from ${pos}. Villain 3-bets to ${itr?'9bb':'$'+Math.round(bb*9)}.`,pot:itr?`${bb*12}bb`:`$${Math.round(bb*12)}`,callAmt:itr?`${bb*9}bb`:`$${Math.round(bb*9)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — facing 3-bet: ${is4?'✓ 4-bet':'✗ Fold'}`,pfCtx:`Hero opened from ${pos}, villain 3-bets. Hero holds ${key}. GTO: 4-bet premiums + A5s/A4s, fold the rest. Stack: ${stackStr}.`,label:`Preflop: ${pos} facing 3-bet`};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const op=rnd(['UTG','MP','HJ','CO','BTN','SB']);const thr=NL3BET['vs'+op]||NL3BET.vsBTN;const def={UTG:NLCALL.vsUTG,MP:NLCALL.vsMP,HJ:NLCALL.vsHJ,CO:NLCALL.vsCO,BTN:NLBBDEF,SB:NLBBDEF}[op]||NLCALL.vsCO;const defPct={UTG:'~35%',MP:'~38%',HJ:'~42%',CO:'~46%',BTN:'~55%',SB:'~55%'}[op]||'~40%';const roll=Math.random();let cards,correct;if(roll<0.30){cards=drawFrom(thr);correct=`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`;}else if(roll<0.72){cards=drawFrom(def);const k=hkey(cards[0],cards[1]);correct=thr.has(k)&&Math.random()>0.65?`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`:'Call';}else{cards=decodeKey(rnd(['72o','73o','82o','83o','92o','J2o','T2o','62o','52o']));correct='Fold';}const key=hkey(cards[0],cards[1]);return{cards,heroPos:'BB',allPos,seats,board:[],street:'Preflop',pfHist:`${op} opens to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}. Folds to BB.`,pot:itr?`${bb*4}bb`:`$${Math.round(bb*4)}`,callAmt:itr?`${bb*1.5}bb`:`$${Math.round(bb*1.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — BB vs ${op} (defends ${defPct}): ${correct}`,pfCtx:`${op} opens, single raise only. Hero in BB with ${key}. BB defends ${defPct} vs ${op}. Stack: ${stackStr}.`,label:`Preflop: BB defending vs ${op} open`};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const op=rnd(['HJ','CO','BTN']);const thr=NL3BET.vsBTN;const roll=Math.random();let cards,correct;if(roll<0.40){cards=drawFrom(thr);correct=`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`;}else if(roll<0.60){cards=drawFrom(NLSBCALL);const k=hkey(cards[0],cards[1]);correct=thr.has(k)?`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`:'Call';}else{const fp=sfl([...NLRFI.BTN].filter(k=>!thr.has(k)&&!NLSBCALL.has(k)));cards=decodeKey(fp[0]||'K7o');correct='Fold';}const key=hkey(cards[0],cards[1]);return{cards,heroPos:'SB',allPos,seats,board:[],street:'Preflop',pfHist:`${op} opens to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}. Folds to SB.`,pot:itr?`${bb*4}bb`:`$${Math.round(bb*4)}`,callAmt:itr?`${bb*1.5}bb`:`$${Math.round(bb*1.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — SB vs ${op}: ${correct.includes('Fold')?'✗ Fold OOP':correct.includes('3-bet')?'✓ 3-bet':'✓ Tight flat'}`,pfCtx:`${op} opens. Hero in SB with ${key}. SB is OOP — tight calling range. Stack: ${stackStr}.`,label:`Preflop: SB facing ${op} open`};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const roll=Math.random();let cards,correct;if(roll<0.38){cards=drawFrom(NLRFI.SB);correct=`Raise to ${itr?'3bb':'$'+Math.round(bb*3)}`;}else if(roll<0.72){cards=drawFrom(NLSBLMP);correct='Complete';}else{cards=decodeKey(rnd(['72o','73o','83o','82o','92o','J2o']));correct='Fold';}const key=hkey(cards[0],cards[1]);return{cards,heroPos:'SB',allPos,seats,board:[],street:'Preflop',pfHist:'Folds to SB. Only BB remains.',pot:itr?`${Math.round(bb*1.5)}bb`:`$${Math.round(bb*1.5)}`,callAmt:itr?`${Math.round(bb*0.5)}bb`:`$${Math.round(bb*0.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — SB vs BB only: ${correct==='Complete'?'✓ GTO limp':correct.includes('Raise')?'✓ Raise':'✗ Fold'}`,pfCtx:`Folds to SB with ${key}. Only BB behind. Raise strong, complete medium, fold trash. Stack: ${stackStr}.`,label:'Preflop: SB vs BB only'};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const roll=Math.random();let cards,correct;if(roll<0.40){cards=drawFrom(NLBBISO);correct=`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`;}else{cards=drawFrom(NLBBDEF);const k=hkey(cards[0],cards[1]);correct=NLBBISO.has(k)&&Math.random()>0.55?`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`:'Check';}const key=hkey(cards[0],cards[1]);return{cards,heroPos:'BB',allPos,seats,board:[],street:'Preflop',pfHist:'SB completes. Action to BB.',pot:itr?`${bb*2}bb`:`$${Math.round(bb*2)}`,callAmt:'0',blindStr,stackStr,correct,wrong:['Fold',`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`,'Check',`Min-raise to ${itr?'2bb':'$'+Math.round(bb*2)}`].filter(o=>cleanLabel(o)!==cleanLabel(correct)).slice(0,3),key,rangeNote:`${key} — BB vs SB limp: ${correct.includes('Iso')?'✓ Iso-raise':'✓ Check'}`,pfCtx:`SB limps. Hero in BB with ${key}. Never fold to a limp. GTO: iso-raise strong hands, check the rest. Stack: ${stackStr}.`,label:'Preflop: BB facing SB limp'};}}
+];
+
+// ── NLH Postflop scenarios ─────────────────────────────
+const NLH_POST=[
+  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['BTN','CO','HJ']);const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);const board=drawBoard(cards,3);const tex=boardTex(board);const str=nlStr(cards[0],cards[1],board);const correct=tex==='dry'?'Bet 33% pot':(str==='monster'||str==='strong')?'Bet 50% pot':'Check';const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;return{cards,heroPos:pos,allPos,seats,board,street:'Flop',pfHist:`Hero opens ${pos}, BB defends. Flop: ${bStr(board)}. BB checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'cbet'),key:hkey(cards[0],cards[1]),rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} (${tex}) — ${str}`,pfCtx:`Hero opened ${pos}, BB defended. Board: ${bStr(board)} (${tex}). BB checks. Pot: ${pot}.`,label:`Flop: IP c-bet (${tex} board)`};}},
+  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){const op=rnd(['BTN','CO']);const cards=drawFrom(NLBBDEF);const board=drawBoard(cards,3);const tex=boardTex(board);const str=nlStr(cards[0],cards[1],board);const correct=str==='monster'?'Check-raise':str==='strong'?'Call':(str==='draw'&&tex!=='dry')?'Check-raise':str==='medium'?'Call':'Fold';const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;const callA=itr?`${Math.round(bb*3)}bb`:`$${Math.round(bb*3)}`;return{cards,heroPos:'BB',allPos,seats,board,street:'Flop',pfHist:`${op} opens, BB defends. Flop: ${bStr(board)}. Hero checks. ${op} bets 50% pot.`,pot,callAmt:callA,blindStr,stackStr,correct,wrong:postWrong(correct,'facing'),key:hkey(cards[0],cards[1]),rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${str} (${tex})`,pfCtx:`Hero in BB vs ${op}. Board: ${bStr(board)} (${tex}). Facing 50% pot c-bet. Pot: ${pot}.`,label:`Flop: BB vs c-bet (${tex})`};}},
+  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['BTN','CO']);const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);const board=drawBoard(cards,4);const str=nlStr(cards[0],cards[1],board);const correct=(str==='monster'||str==='strong')?'Bet 66% pot':str==='draw'?'Bet 50% pot':'Check';const pot=itr?`${bb*14}bb`:`$${Math.round(bb*14)}`;return{cards,heroPos:pos,allPos,seats,board,street:'Turn',pfHist:`Hero opened ${pos}, BB called. C-bet flop called. Turn: ${bStr([board[3]])}. BB checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'turn'),key:hkey(cards[0],cards[1]),rangeNote:`${hkey(cards[0],cards[1])} on turn — ${str}`,pfCtx:`Hero in ${pos}. Flop: ${bStr(board.slice(0,3))}. Turn: ${bStr([board[3]])}. BB checks. Pot: ${pot}.`,label:'Turn: barrel or check IP'};}},
+  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['BTN','CO']);const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);const board=drawBoard(cards,5);const str=nlStr(cards[0],cards[1],board.slice(0,3));const correct=str==='monster'?'Bet 100% pot':str==='strong'?'Bet 66% pot':'Check';const pot=itr?`${bb*36}bb`:`$${Math.round(bb*36)}`;return{cards,heroPos:pos,allPos,seats,board,street:'River',pfHist:`3-bet pot. Hero c-bet flop and turn, both called. River: ${bStr([board[4]])}. Villain checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'river'),key:hkey(cards[0],cards[1]),rangeNote:`${hkey(cards[0],cards[1])} — river SDV: ${str}`,pfCtx:`Hero in ${pos}. Board: ${bStr(board)}. Villain checks river. Pot: ${pot}.`,label:'River: value bet or check'};}},
+  {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['BTN','CO']);const suitedPool=new Set([...NLRFI[pos]||NLRFI.BTN].filter(k=>k.endsWith('s')));const cards=drawFrom(suitedPool);const board=drawBoard(cards,5);const str=nlStr(cards[0],cards[1],board.slice(0,3));const hasBlk=cards[0].rank==='A'||cards[1].rank==='A'||cards[0].rank==='K'||cards[1].rank==='K';const correct=str==='weak'&&hasBlk?'Bet 100% pot':'Check';const pot=itr?`${bb*24}bb`:`$${Math.round(bb*24)}`;return{cards,heroPos:pos,allPos,seats,board,street:'River',pfHist:`Hero 3-bet from ${pos}, BB called. Bet flop, check turn. River: ${bStr([board[4]])}. BB checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'bluff'),key:hkey(cards[0],cards[1]),rangeNote:`${hkey(cards[0],cards[1])} — ${hasBlk?'has blocker':'no blocker'}`,pfCtx:`Hero in ${pos}. Board: ${bStr(board)}. Missed draw. BB checks river. Pot: ${pot}.`,label:'River: bluff or give up'};}},
+  {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){const cards=drawFrom(NLBBDEF);const board=drawBoard(cards,3);const tex=boardTex(board);const str=nlStr(cards[0],cards[1],board);const correct=(str==='draw'&&tex!=='dry')||str==='monster'?'Check-raise':'Call';const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;const callA=itr?`${Math.round(bb*3)}bb`:`$${Math.round(bb*3)}`;return{cards,heroPos:'BB',allPos,seats,board,street:'Flop',pfHist:`BTN opens, BB defends. Flop: ${bStr(board)}. BB checks. BTN bets 50% pot.`,pot,callAmt:callA,blindStr,stackStr,correct,wrong:postWrong(correct,'semib'),key:hkey(cards[0],cards[1]),rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${str} (${tex})`,pfCtx:`Hero in BB. Board: ${bStr(board)} (${tex}). BTN bets 50% pot. Pot: ${pot}.`,label:`Flop: semi-bluff check-raise (${tex})`};}}
+];
+
+// ── PLO scenarios ──────────────────────────────────────
+const PLO_PF=[
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['UTG','MP','HJ','CO','BTN']);const tierMap={UTG:['premium'],MP:['premium'],HJ:['premium','strong'],CO:['premium','strong','playable'],BTN:['premium','strong','playable']};const inR=Math.random()>0.25;const hand=inR?drawPLO(tierMap[pos]||['premium']):drawPLO(['playable']);const correct=inR?`Pot-raise to ${itr?Math.round(3.5*bb)+'bb':'$'+Math.round(3.5*bb)}`:'Fold';return{cards:hand.cards,heroPos:pos,allPos,seats,board:[],street:'Preflop',pfHist:`Folds to hero in ${pos}.`,pot:itr?`${Math.round(bb*1.5)}bb`:`$${Math.round(bb*1.5)}`,callAmt:'0',blindStr,stackStr,correct,wrong:['Call','Fold','Pot-raise','Min-raise'].filter(o=>cleanLabel(o)!==cleanLabel(correct)).slice(0,3),key:hand.handName,rangeNote:`${hand.handName} — PLO ${inR?'✓ In range for '+pos:'✗ Too weak from '+pos}`,pfCtx:`PLO. Hero in ${pos} with ${hand.handName}. Pot-raise or fold only. Stack: ${stackStr}.`,label:`PLO Preflop: RFI from ${pos}`};}},
+  {build({itr,bb,stackStr,blindStr,seats,allPos}){const op=rnd(['UTG','MP','HJ','CO','BTN']);const hero=rnd(['CO','BTN','SB','BB'].filter(p=>p!==op));const isPrem=Math.random()>0.45;const hand=drawPLO(isPrem?['premium']:['strong','playable']);const correct=isPrem?`3-bet pot to ${itr?Math.round(11*bb)+'bb':'$'+Math.round(11*bb)}`:'Call';return{cards:hand.cards,heroPos:hero,allPos,seats,board:[],street:'Preflop',pfHist:`${op} pot-raises to ${itr?'3.5bb':'$'+Math.round(3.5*bb)}. Folds to hero in ${hero}.`,pot:itr?`${bb*8}bb`:`$${Math.round(bb*8)}`,callAmt:itr?`${Math.round(3.5*bb)}bb`:`$${Math.round(3.5*bb)}`,blindStr,stackStr,correct,wrong:['Call','3-bet pot','Fold','Min-raise'].filter(o=>cleanLabel(o)!==cleanLabel(correct)).slice(0,3),key:hand.handName,rangeNote:`${hand.handName} — PLO ${isPrem?'✓ 3-bet':'✓ Call'}`,pfCtx:`PLO. ${op} opens pot. Hero in ${hero} with ${hand.handName}. Stack: ${stackStr}.`,label:`PLO Preflop: ${hero} facing ${op} open`};}}
+];
+const PLO_POST=[
+  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['BTN','CO']);const hand=drawPLO(['premium']);const board=drawBoard(hand.cards,3);const tex=boardTex(board);const correct=tex==='wet'?'Bet 100% pot':'Bet 66% pot';const pot=itr?`${bb*8}bb`:`$${Math.round(bb*8)}`;return{cards:hand.cards,heroPos:pos,allPos,seats,board,street:'Flop',pfHist:`3-bet pot pre. Flop: ${bStr(board)}. Villain checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'cbet'),key:hand.handName,rangeNote:`${hand.handName} — PLO flop (${tex})`,pfCtx:`PLO 3-bet pot. Hero in ${pos} with ${hand.handName}. Flop: ${bStr(board)} (${tex}). Villain checks. Pot: ${pot}.`,label:`PLO Flop: set on ${tex} board`};}},
+  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){const hand=drawPLO(['strong','playable']);const board=drawBoard(hand.cards,3);const tex=boardTex(board);const pot=itr?`${bb*7}bb`:`$${Math.round(bb*7)}`;const betA=itr?`${Math.round(bb*7)}bb`:`$${Math.round(bb*7)}`;return{cards:hand.cards,heroPos:'BB',allPos,seats,board,street:'Flop',pfHist:`Opponent pot-bets on ${bStr(board)}. Hero in BB.`,pot,callAmt:betA,blindStr,stackStr,correct:'Call',wrong:postWrong('Call','facing'),key:hand.handName,rangeNote:`${hand.handName} — PLO wrap draw on ${bStr(board)}`,pfCtx:`PLO. Hero in BB with ${hand.handName}. Facing pot-bet on ${bStr(board)}. PLO wraps have ~60% equity vs top set. Pot: ${pot}.`,label:'PLO Flop: wrap draw facing bet'};}},
+  {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){const pos=rnd(['BTN','CO']);const hand=drawPLO(['strong','playable']);const board=drawBoard(hand.cards,5);const pot=itr?`${bb*30}bb`:`$${Math.round(bb*30)}`;return{cards:hand.cards,heroPos:pos,allPos,seats,board,street:'River',pfHist:`3-bet pot pre, c-bet flop, check turn. River: ${bStr([board[4]])}. Villain checks.`,pot,callAmt:'0',blindStr,stackStr,correct:'Check',wrong:postWrong('Check','bluff'),key:hand.handName,rangeNote:`${hand.handName} — PLO river bluff spot`,pfCtx:`PLO. Hero in ${pos} with ${hand.handName}. Board: ${bStr(board)}. Villain's calling range is very wide in PLO. Pot: ${pot}.`,label:'PLO River: bluff or give up'};}}
+];
+
+// ── Scenario dispatcher ────────────────────────────────
 function buildScenario(cat,game,itr){
   const bb=itr?100:2;
   const stack=itr?rnd([20,30,40,50,60,80,100])*bb:rnd([100,150,200,300,500]);
@@ -227,197 +249,6 @@ function buildScenario(cat,game,itr){
   const pool=cat==='preflop'?NLH_PF:(cat==='bluffing'?NLH_POST.filter(t=>t.cat==='bluffing'):NLH_POST.filter(t=>t.cat==='postflop'));
   return{...rnd(pool.length?pool:NLH_POST).build(ctx),game:'NLH',variant:"Texas Hold'em"};
 }
-
-// ── NLH Preflop ────────────────────────────────────────
-const NLH_PF=[
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['UTG','MP','HJ','CO','BTN','SB']);
-    const range=NLRFI[pos]||NLRFI.HJ;
-    const inR=Math.random()>0.3;
-    const cards=inR?drawFrom(range):drawFrom(new Set(sfl([...NLRFI.BTN].filter(k=>!range.has(k)))));
-    const key=hkey(cards[0],cards[1]);
-    const correct=inR?`Raise to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}`:'Fold';
-    return{cards,heroPos:pos,allPos,seats,board:[],street:'Preflop',pfHist:`Folds to hero in ${pos}.`,pot:itr?`${Math.round(bb*1.5)}bb`:`$${Math.round(bb*1.5)}`,callAmt:'0',blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — ${inR?'✓ In RFI range for '+pos:'✗ Outside RFI range for '+pos}`,pfCtx:`Hero in ${pos} with ${key}. Folds to hero. GTO: raise or fold only. Stack: ${stackStr}.`,label:`Preflop: RFI from ${pos}`};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const opMap={UTG:['MP','HJ','CO','BTN','BB'],MP:['HJ','CO','BTN','BB'],HJ:['CO','BTN','BB'],CO:['BTN','BB'],BTN:['BB']};
-    const op=rnd(['UTG','MP','HJ','CO','BTN']);
-    const hero=rnd(opMap[op]);
-    const thr=NL3BET['vs'+op]||NL3BET.vsCO;
-    const cal=NLCALL['vs'+op]||NLCALL.vsCO;
-    const roll=Math.random();
-    let cards,correct;
-    if(roll<0.35){cards=drawFrom(thr);correct=`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`;}
-    else if(roll<0.7){cards=drawFrom(cal);correct='Call';}
-    else{const fp=sfl([...NLRFI.BTN].filter(k=>!thr.has(k)&&!cal.has(k)));cards=decodeKey(fp[0]||'72o');correct='Fold';}
-    const key=hkey(cards[0],cards[1]);
-    return{cards,heroPos:hero,allPos,seats,board:[],street:'Preflop',pfHist:`${op} opens to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}. Folds to hero in ${hero}.`,pot:itr?`${bb*4}bb`:`$${Math.round(bb*4)}`,callAmt:itr?`${bb*2.5}bb`:`$${Math.round(bb*2.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — vs ${op} open: ${correct}`,pfCtx:`${op} opens. Hero in ${hero} with ${key}. Single open only. Stack: ${stackStr}.`,label:`Preflop: ${hero} facing ${op} open`};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['UTG','MP','HJ','CO','BTN']);
-    const range=NLRFI[pos]||NLRFI.HJ;
-    const cards=drawFrom(range);
-    const key=hkey(cards[0],cards[1]);
-    const val4=['AA','KK','QQ','JJ','AKs','AKo'];
-    const blf4=['A5s','A4s','A3s'];
-    const is4=val4.includes(key)||blf4.includes(key);
-    const correct=is4?`4-bet to ${itr?'22bb':'$'+Math.round(bb*22)}`:'Fold';
-    return{cards,heroPos:pos,allPos,seats,board:[],street:'Preflop',pfHist:`Hero opens ${itr?'2.5bb':'$'+Math.round(bb*2.5)} from ${pos}. Villain 3-bets to ${itr?'9bb':'$'+Math.round(bb*9)}.`,pot:itr?`${bb*12}bb`:`$${Math.round(bb*12)}`,callAmt:itr?`${bb*9}bb`:`$${Math.round(bb*9)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — facing 3-bet: ${is4?'✓ 4-bet':'✗ Fold'}`,pfCtx:`Hero opened from ${pos}, villain 3-bets. Hero holds ${key}. GTO: 4-bet premiums + A5s/A4s, fold the rest. Stack: ${stackStr}.`,label:`Preflop: ${pos} facing 3-bet`};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const op=rnd(['UTG','MP','HJ','CO','BTN','SB']);
-    const thr=NL3BET['vs'+op]||NL3BET.vsBTN;
-    const def={UTG:NLCALL.vsUTG,MP:NLCALL.vsMP,HJ:NLCALL.vsHJ,CO:NLCALL.vsCO,BTN:NLBBDEF,SB:NLBBDEF}[op]||NLCALL.vsCO;
-    const defPct={UTG:'~35%',MP:'~38%',HJ:'~42%',CO:'~46%',BTN:'~55%',SB:'~55%'}[op]||'~40%';
-    const roll=Math.random();
-    let cards,correct;
-    if(roll<0.30){cards=drawFrom(thr);correct=`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`;}
-    else if(roll<0.72){cards=drawFrom(def);const k=hkey(cards[0],cards[1]);correct=thr.has(k)&&Math.random()>0.65?`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`:'Call';}
-    else{cards=decodeKey(rnd(['72o','73o','82o','83o','92o','J2o','T2o','62o','52o','32o']));correct='Fold';}
-    const key=hkey(cards[0],cards[1]);
-    return{cards,heroPos:'BB',allPos,seats,board:[],street:'Preflop',pfHist:`${op} opens to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}. Folds to hero in BB.`,pot:itr?`${bb*4}bb`:`$${Math.round(bb*4)}`,callAmt:itr?`${bb*1.5}bb`:`$${Math.round(bb*1.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — BB vs ${op} (defends ${defPct}): ${correct}`,pfCtx:`${op} opens, single raise only. Hero in BB with ${key}. BB defends ${defPct} vs ${op}. Stack: ${stackStr}.`,label:`Preflop: BB defending vs ${op} open`};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const op=rnd(['HJ','CO','BTN']);
-    const thr=NL3BET.vsBTN;
-    const roll=Math.random();
-    let cards,correct;
-    if(roll<0.40){cards=drawFrom(thr);correct=`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`;}
-    else if(roll<0.60){cards=drawFrom(NLSBCALL);const k=hkey(cards[0],cards[1]);correct=thr.has(k)?`3-bet to ${itr?'9bb':'$'+Math.round(bb*9)}`:'Call';}
-    else{const fp=sfl([...NLRFI.BTN].filter(k=>!thr.has(k)&&!NLSBCALL.has(k)));cards=decodeKey(fp[0]||'K7o');correct='Fold';}
-    const key=hkey(cards[0],cards[1]);
-    return{cards,heroPos:'SB',allPos,seats,board:[],street:'Preflop',pfHist:`${op} opens to ${itr?'2.5bb':'$'+Math.round(bb*2.5)}. Folds to hero in SB.`,pot:itr?`${bb*4}bb`:`$${Math.round(bb*4)}`,callAmt:itr?`${bb*1.5}bb`:`$${Math.round(bb*1.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — SB vs ${op}: ${correct.includes('Fold')?'✗ Fold OOP':correct.includes('3-bet')?'✓ 3-bet':'✓ Tight flat'}`,pfCtx:`${op} opens. Hero in SB with ${key}. SB is OOP — tight calling range. Stack: ${stackStr}.`,label:`Preflop: SB facing ${op} open`};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const roll=Math.random();
-    let cards,correct;
-    if(roll<0.38){cards=drawFrom(NLRFI.SB);correct=`Raise to ${itr?'3bb':'$'+Math.round(bb*3)}`;}
-    else if(roll<0.72){cards=drawFrom(NLSBLMP);correct='Complete';}
-    else{cards=decodeKey(rnd(['72o','73o','83o','82o','92o','J2o','Q2o','T2o']));correct='Fold';}
-    const key=hkey(cards[0],cards[1]);
-    return{cards,heroPos:'SB',allPos,seats,board:[],street:'Preflop',pfHist:'Folds to hero in SB. Only BB remains.',pot:itr?`${Math.round(bb*1.5)}bb`:`$${Math.round(bb*1.5)}`,callAmt:itr?`${Math.round(bb*0.5)}bb`:`$${Math.round(bb*0.5)}`,blindStr,stackStr,correct,wrong:pfWrong(correct,itr,bb),key,rangeNote:`${key} — SB vs BB only: ${correct==='Complete'?'✓ GTO limp':correct.includes('Raise')?'✓ Raise':'✗ Fold'}`,pfCtx:`Folds to SB. Hero holds ${key}. Only BB behind. GTO: raise strong hands, complete medium playable hands, fold trash. Stack: ${stackStr}.`,label:'Preflop: SB vs BB only'};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const roll=Math.random();
-    let cards,correct;
-    if(roll<0.40){cards=drawFrom(NLBBISO);correct=`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`;}
-    else{cards=drawFrom(NLBBDEF);const k=hkey(cards[0],cards[1]);correct=NLBBISO.has(k)&&Math.random()>0.55?`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`:'Check';}
-    const key=hkey(cards[0],cards[1]);
-    return{cards,heroPos:'BB',allPos,seats,board:[],street:'Preflop',pfHist:'Folds to SB, SB completes. Action to BB.',pot:itr?`${bb*2}bb`:`$${Math.round(bb*2)}`,callAmt:'0',blindStr,stackStr,correct,wrong:['Fold',`Iso-raise to ${itr?'4bb':'$'+Math.round(bb*4)}`,'Check',`Min-raise to ${itr?'2bb':'$'+Math.round(bb*2)}`].filter(o=>cleanLabel(o)!==cleanLabel(correct)).slice(0,3),key,rangeNote:`${key} — BB vs SB limp: ${correct.includes('Iso')?'✓ Iso-raise':'✓ Check (free flop)'}`,pfCtx:`SB limps. Hero in BB with ${key}. BB already paid 1bb — folding is never correct. GTO: iso-raise strong hands, check the rest. Stack: ${stackStr}.`,label:'Preflop: BB facing SB limp'};
-  }}
-];
-
-// ── NLH Postflop ───────────────────────────────────────
-const NLH_POST=[
-  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['BTN','CO','HJ']);
-    const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);
-    const board=drawBoard(cards,3);
-    const tex=boardTex(board);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=tex==='dry'?'Bet 33% pot':(str==='monster'||str==='strong')?'Bet 50% pot':str==='draw'?'Check':'Check';
-    const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;
-    return{cards,heroPos:pos,allPos,seats,board,street:'Flop',pfHist:`Hero opens ${pos}, BB defends. Flop: ${bStr(board)}. BB checks to hero.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'cbet'),key:hkey(cards[0],cards[1]),tex,str,rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} (${tex}) — ${str}`,pfCtx:`Hero opened ${pos} (GTO open), BB defended. Board: ${bStr(board)} (${tex}). BB checks. Pot: ${pot}.`,label:`Flop: IP c-bet (${tex} board)`};
-  }},
-  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const op=rnd(['BTN','CO']);
-    const cards=drawFrom(NLBBDEF);
-    const board=drawBoard(cards,3);
-    const tex=boardTex(board);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=str==='monster'?'Check-raise':(str==='strong')?'Call':(str==='draw'&&tex!=='dry')?'Check-raise':str==='medium'?'Call':'Fold';
-    const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;
-    const callA=itr?`${Math.round(bb*3)}bb`:`$${Math.round(bb*3)}`;
-    return{cards,heroPos:'BB',allPos,seats,board,street:'Flop',pfHist:`${op} opens, hero defends BB. Flop: ${bStr(board)}. Hero checks. ${op} bets 50% pot.`,pot,callAmt:callA,blindStr,stackStr,correct,wrong:postWrong(correct,'facing'),key:hkey(cards[0],cards[1]),tex,str,rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${str} (${tex})`,pfCtx:`Hero in BB vs ${op} open. Board: ${bStr(board)} (${tex}). Facing 50% pot c-bet. Pot: ${pot}.`,label:`Flop: BB vs c-bet (${tex})`};
-  }},
-  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['BTN','CO']);
-    const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);
-    const board=drawBoard(cards,4);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=(str==='monster'||str==='strong')?'Bet 66% pot':str==='draw'?'Bet 50% pot':str==='medium'?'Check':'Check';
-    const pot=itr?`${bb*14}bb`:`$${Math.round(bb*14)}`;
-    return{cards,heroPos:pos,allPos,seats,board,street:'Turn',pfHist:`Hero opened ${pos}, BB called. C-bet flop called. Turn: ${bStr([board[3]])}. BB checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'turn'),key:hkey(cards[0],cards[1]),str,rangeNote:`${hkey(cards[0],cards[1])} on turn — ${str}`,pfCtx:`Hero in ${pos}. Flop: ${bStr(board.slice(0,3))}. Turn: ${bStr([board[3]])}. BB checks. Pot: ${pot}.`,label:'Turn: barrel or check IP'};
-  }},
-  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['BTN','CO']);
-    const cards=drawFrom(NLRFI[pos]||NLRFI.BTN);
-    const board=drawBoard(cards,5);
-    const str=nlStr(cards[0],cards[1],board.slice(0,3));
-    const correct=str==='monster'?'Bet 100% pot':str==='strong'?'Bet 66% pot':'Check';
-    const pot=itr?`${bb*36}bb`:`$${Math.round(bb*36)}`;
-    return{cards,heroPos:pos,allPos,seats,board,street:'River',pfHist:`3-bet pot. Hero c-bet flop and turn, both called. River: ${bStr([board[4]])}. Villain checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'river'),key:hkey(cards[0],cards[1]),str,rangeNote:`${hkey(cards[0],cards[1])} — river SDV: ${str}`,pfCtx:`Hero in ${pos}. Board: ${bStr(board)}. Villain checks river. Pot: ${pot}.`,label:'River: value bet or check IP'};
-  }},
-  {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['BTN','CO']);
-    const suitedPool=new Set([...NLRFI[pos]||NLRFI.BTN].filter(k=>k.endsWith('s')));
-    const cards=drawFrom(suitedPool);
-    const board=drawBoard(cards,5);
-    const str=nlStr(cards[0],cards[1],board.slice(0,3));
-    const hasBlk=cards[0].rank==='A'||cards[1].rank==='A'||cards[0].rank==='K'||cards[1].rank==='K';
-    const correct=str==='weak'&&hasBlk?'Bet 100% pot':str==='weak'?'Check':'Check';
-    const pot=itr?`${bb*24}bb`:`$${Math.round(bb*24)}`;
-    return{cards,heroPos:pos,allPos,seats,board,street:'River',pfHist:`Hero 3-bet from ${pos}, BB called. Bet flop, check turn. River: ${bStr([board[4]])}. BB checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'bluff'),key:hkey(cards[0],cards[1]),str,rangeNote:`${hkey(cards[0],cards[1])} — ${hasBlk?'has blocker':'no blocker'}`,pfCtx:`Hero in ${pos}. Board: ${bStr(board)}. Missed draw. BB checks river. Pot: ${pot}.`,label:'River: bluff or give up'};
-  }},
-  {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const cards=drawFrom(NLBBDEF);
-    const board=drawBoard(cards,3);
-    const tex=boardTex(board);
-    const str=nlStr(cards[0],cards[1],board);
-    const correct=str==='draw'&&tex!=='dry'?'Check-raise':str==='monster'?'Check-raise':str==='draw'?'Call':'Call';
-    const pot=itr?`${bb*6}bb`:`$${Math.round(bb*6)}`;
-    const callA=itr?`${Math.round(bb*3)}bb`:`$${Math.round(bb*3)}`;
-    return{cards,heroPos:'BB',allPos,seats,board,street:'Flop',pfHist:`BTN opens, hero defends BB. Flop: ${bStr(board)}. Hero checks. BTN bets 50% pot.`,pot,callAmt:callA,blindStr,stackStr,correct,wrong:postWrong(correct,'semib'),key:hkey(cards[0],cards[1]),tex,str,rangeNote:`${hkey(cards[0],cards[1])} on ${bStr(board)} — ${str} (${tex})`,pfCtx:`Hero in BB. Board: ${bStr(board)} (${tex}). BTN bets 50% pot. Pot: ${pot}.`,label:`Flop: semi-bluff check-raise (${tex})`};
-  }}
-];
-
-// ── PLO ────────────────────────────────────────────────
-const PLO_PF=[
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['UTG','MP','HJ','CO','BTN']);
-    const tierMap={UTG:['premium'],MP:['premium'],HJ:['premium','strong'],CO:['premium','strong','playable'],BTN:['premium','strong','playable']};
-    const inR=Math.random()>0.25;
-    const hand=inR?drawPLO(tierMap[pos]||['premium']):drawPLO(['playable']);
-    const correct=inR?`Pot-raise to ${itr?Math.round(3.5*bb)+'bb':'$'+Math.round(3.5*bb)}`:'Fold';
-    return{cards:hand.cards,heroPos:pos,allPos,seats,board:[],street:'Preflop',pfHist:`Folds to hero in ${pos}.`,pot:itr?`${Math.round(bb*1.5)}bb`:`$${Math.round(bb*1.5)}`,callAmt:'0',blindStr,stackStr,correct,wrong:['Call','Fold','Pot-raise','Min-raise'].filter(o=>cleanLabel(o)!==cleanLabel(correct)).slice(0,3),key:hand.handName,rangeNote:`${hand.handName} — PLO ${inR?'✓ In range for '+pos:'✗ Too weak from '+pos}`,pfCtx:`PLO. Hero in ${pos} with ${hand.handName} (${hand.desc}). Pot-raise or fold only. Stack: ${stackStr}.`,label:`PLO Preflop: RFI from ${pos}`};
-  }},
-  {build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const op=rnd(['UTG','MP','HJ','CO','BTN']);
-    const hero=rnd(['CO','BTN','SB','BB'].filter(p=>p!==op));
-    const isPrem=Math.random()>0.45;
-    const hand=drawPLO(isPrem?['premium']:['strong','playable']);
-    const correct=isPrem?`3-bet pot to ${itr?Math.round(11*bb)+'bb':'$'+Math.round(11*bb)}`:'Call';
-    return{cards:hand.cards,heroPos:hero,allPos,seats,board:[],street:'Preflop',pfHist:`${op} pot-raises to ${itr?'3.5bb':'$'+Math.round(3.5*bb)}. Folds to hero in ${hero}.`,pot:itr?`${bb*8}bb`:`$${Math.round(bb*8)}`,callAmt:itr?`${Math.round(3.5*bb)}bb`:`$${Math.round(3.5*bb)}`,blindStr,stackStr,correct,wrong:['Call','3-bet pot','Fold','Min-raise'].filter(o=>cleanLabel(o)!==cleanLabel(correct)).slice(0,3),key:hand.handName,rangeNote:`${hand.handName} — PLO ${isPrem?'✓ 3-bet':'✓ Call'}`,pfCtx:`PLO. ${op} opens pot. Hero in ${hero} with ${hand.handName}. Stack: ${stackStr}.`,label:`PLO Preflop: ${hero} facing ${op} open`};
-  }}
-];
-const PLO_POST=[
-  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['BTN','CO']);
-    const hand=drawPLO(['premium']);
-    const board=drawBoard(hand.cards,3);
-    const tex=boardTex(board);
-    const correct=tex==='wet'?'Bet 100% pot':'Bet 66% pot';
-    const pot=itr?`${bb*8}bb`:`$${Math.round(bb*8)}`;
-    return{cards:hand.cards,heroPos:pos,allPos,seats,board,street:'Flop',pfHist:`3-bet pot pre. Hero in ${pos}. Flop: ${bStr(board)}. Villain checks.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'cbet'),key:hand.handName,tex,rangeNote:`${hand.handName} — PLO flop (${tex})`,pfCtx:`PLO 3-bet pot. Hero in ${pos} with ${hand.handName}. Flop: ${bStr(board)} (${tex}). Villain checks. Pot: ${pot}.`,label:`PLO Flop: set on ${tex} board`};
-  }},
-  {cat:'postflop',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const hand=drawPLO(['strong','playable']);
-    const board=drawBoard(hand.cards,3);
-    const tex=boardTex(board);
-    const pot=itr?`${bb*7}bb`:`$${Math.round(bb*7)}`;
-    const betA=itr?`${Math.round(bb*7)}bb`:`$${Math.round(bb*7)}`;
-    const correct='Call';
-    return{cards:hand.cards,heroPos:'BB',allPos,seats,board,street:'Flop',pfHist:`Opponent pot-bets ${betA} on ${bStr(board)}. Hero in BB with wrap draw potential.`,pot,callAmt:betA,blindStr,stackStr,correct,wrong:postWrong(correct,'facing'),key:hand.handName,tex,rangeNote:`${hand.handName} — PLO wrap draw on ${bStr(board)}`,pfCtx:`PLO. Hero in BB with ${hand.handName}. Facing pot-bet on ${bStr(board)}. PLO wraps have ~60% equity vs top set. Pot: ${pot}.`,label:'PLO Flop: wrap draw facing bet'};
-  }},
-  {cat:'bluffing',build({itr,bb,stackStr,blindStr,seats,allPos}){
-    const pos=rnd(['BTN','CO']);
-    const hand=drawPLO(['strong','playable']);
-    const board=drawBoard(hand.cards,5);
-    const pot=itr?`${bb*30}bb`:`$${Math.round(bb*30)}`;
-    const correct='Check';
-    return{cards:hand.cards,heroPos:pos,allPos,seats,board,street:'River',pfHist:`3-bet pot pre, c-bet flop, check turn. River: ${bStr([board[4]])}. Villain checks to hero.`,pot,callAmt:'0',blindStr,stackStr,correct,wrong:postWrong(correct,'bluff'),key:hand.handName,rangeNote:`${hand.handName} — PLO river bluff spot`,pfCtx:`PLO. Hero in ${pos} with ${hand.handName}. Board: ${bStr(board)}. Villain's calling range is very wide in PLO. Pot: ${pot}.`,label:'PLO River: bluff or give up'};
-  }}
-];
 
 // ── State & Storage ────────────────────────────────────
 const state={variant:'holdem',format:'cash',cat:'preflop',difficulty:'Intermediate',villain:'TAG',showPotOdds:false,sessionMode:false,sessionCount:0,sessionAnswers:[],user:null,users:[],quiz:null,selected:null,loading:false,streak:0,hintUsed:false,hint:null};
@@ -513,8 +344,6 @@ async function fetchQuiz(){
     const itr=state.format==='tournament';
     const game=state.variant==='mixed'?(Math.random()>0.5?'plo':'nlh'):state.variant==='plo'?'plo':'nlh';
     const ctx=buildScenario(state.cat,game,itr);
-
-    // Clean labels and deduplicate by verb
     const cc=cleanLabel(ctx.correct);
     const cv=cc.split(' ')[0].toLowerCase();
     let cw=ctx.wrong.map(cleanLabel).filter(o=>o.split(' ')[0].toLowerCase()!==cv&&o!==cc);
@@ -522,25 +351,21 @@ async function fetchQuiz(){
     while(cw.length<3)cw.push(fallbacks.shift()||'Pass');
     const allOpts=sfl([cc,...cw.slice(0,3)]);
     const correctIdx=allOpts.indexOf(cc);
-
-    const diffDesc={Beginner:'Simple explanation.',Intermediate:'Reference position, ranges, pot odds.',Advanced:'GTO-level: MDF, polarization, blockers, frequencies.'}[state.difficulty]||'';
+    const diffDesc={Beginner:'Simple explanation.',Intermediate:'Reference position, ranges, pot odds.',Advanced:'GTO-level: MDF, polarization, blockers, solver frequencies.'}[state.difficulty]||'';
     const isPLO=game==='plo';
     const sys=`You are an expert ${isPLO?'PLO':'NL Hold\'em'} GTO poker coach. The hand, preflop action, and correct answer are already determined. Write a 2-sentence scenario description and 3-4 sentence GTO explanation. DO NOT invent or change any action. Villain: ${state.villain}. ${diffDesc}${isPLO?' Reference PLO concepts: wraps, nut flush draws, multi-way equity.':''} Respond ONLY valid JSON: {"scenario":"2 sentences","explanation":"3-4 sentences","hintText":"1 sentence hint"}`;
     const prompt=`Game: ${ctx.variant}. Format: ${itr?'Tournament':'Cash'}.\nHero: ${ctx.heroPos}. Cards: ${ctx.cards.map(c=>c.rank+c.suit).join(' ')} (${ctx.key}).\nContext: ${ctx.pfCtx}\nHistory: ${ctx.pfHist}\nBoard: ${ctx.board&&ctx.board.length?bStr(ctx.board):'(preflop)'}\nCorrect: ${cc}\nWrong options: ${cw.join(' / ')}\nRange note: ${ctx.rangeNote}`;
-
     const txt=await callClaude(sys,prompt,800);
     const parsed=JSON.parse(txt.replace(/```json|```/g,'').trim());
-
     const potAmt=parseDollar(ctx.pot||'0');
     const callAmt=parseDollar(ctx.callAmt||'0');
     const ratio=callAmt>0?((potAmt+callAmt)/callAmt).toFixed(1)+':1':'N/A';
     const bePct=callAmt>0?Math.round((callAmt/(potAmt+callAmt))*100)+'%':'N/A';
-
     state.quiz={
       variant:ctx.variant,gameType:itr?'Tournament':'Cash Game',
       street:ctx.street,heroPosition:ctx.heroPos,
       numSeats:ctx.seats,allPositions:ctx.allPos,
-      stackSizes:buildStacks(ctx.seats,itr),bets:{},
+      stackSizes:buildStacks(ctx.seats,itr),
       potDisplay:ctx.pot,blinds:ctx.blindStr,
       holeCards:ctx.cards,
       communityCards:ctx.board||[],
@@ -554,13 +379,13 @@ async function fetchQuiz(){
   state.loading=false;renderQuiz();
 }
 
-// ── SVG card renderer ──────────────────────────────────
+// ── Card SVG helper ────────────────────────────────────
 function cardSVG(rank,suit,x,y,w,h){
   const isRed=suit==='h'||suit==='d';
   const col=isRed?'#dc2626':'#1e293b';
   const sym=SYM[suit]||suit;
   const rs=Math.round(w*0.30);
-  const fs=Math.round(w*0.42);
+  const fs=Math.round(w*0.44);
   const rx=Math.round(w*0.13);
   return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="white" stroke="#94a3b8" stroke-width="1.5"/>
     <text x="${x+3}" y="${y+rs+1}" font-size="${rs}" font-weight="800" fill="${col}" font-family="Georgia,serif">${rank}</text>
@@ -568,10 +393,10 @@ function cardSVG(rank,suit,x,y,w,h){
     <text x="${x+w-3}" y="${y+h-3}" font-size="${rs}" font-weight="800" fill="${col}" font-family="Georgia,serif" text-anchor="end" transform="rotate(180,${x+w-3},${y+h-3})">${rank}</text>`;
 }
 
-// ── Table renderer ─────────────────────────────────────
+// ── Table + card tray renderer ─────────────────────────
 function tableHTML(quiz){
-  const W=660,H=400;
-  const cx=W/2,cy=168,rx=215,ry=102;
+  const W=620,H=340;
+  const cx=W/2,cy=158,rx=208,ry=98;
   const seats=quiz.numSeats||6;
   const posLabels=quiz.allPositions||buildPos(seats);
   const heroPos=quiz.heroPosition||'';
@@ -579,7 +404,6 @@ function tableHTML(quiz){
   const holeCards=quiz.holeCards||[];
   const cc=quiz.communityCards||[];
   const isPLO=holeCards.length===4;
-  const HERO_R=28;
 
   let inner=`
     <ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
@@ -589,7 +413,7 @@ function tableHTML(quiz){
 
   // Community cards
   if(cc.length>0){
-    const bw=36,bh=50,bgap=5;
+    const bw=34,bh=48,bgap=5;
     const tw=cc.length*bw+(cc.length-1)*bgap;
     const sx=cx-tw/2,sy=cy-bh/2;
     cc.forEach((c,i)=>{inner+=cardSVG(c.rank,c.suit,sx+i*(bw+bgap),sy,bw,bh);});
@@ -601,39 +425,47 @@ function tableHTML(quiz){
       <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
   }
 
-  // Compute seat positions first
-  const seats_data=Array.from({length:seats},(_, i)=>{
+  // Seats (no cards in SVG)
+  Array.from({length:seats},(_,i)=>{
     const a=(2*Math.PI*i/seats)+Math.PI/2;
-    const sx=Math.round(cx+(rx+36)*Math.cos(a));
-    const sy=Math.round(cy+(ry+46)*Math.sin(a));
+    const sx=Math.round(cx+(rx+30)*Math.cos(a));
+    const sy=Math.round(cy+(ry+40)*Math.sin(a));
     const label=posLabels[i]||'';
-    return{sx,sy,label,isHero:label===heroPos,isBtn:label==='BTN',stack:stacks[i]||''};
+    const isHero=label===heroPos;
+    const isBtn=label==='BTN';
+    const stack=stacks[i]||'';
+    const R=isHero?24:20;
+    inner+=`<circle cx="${sx}" cy="${sy}" r="${R}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#2a2a2a'}" stroke-width="${isHero?2.5:1.5}"/>`;
+    if(isBtn)inner+=`<circle cx="${sx+18}" cy="${sy-18}" r="9" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/><text x="${sx+18}" y="${sy-14}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="800">D</text>`;
+    if(isHero)inner+=`<text x="${sx}" y="${sy-13}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+    inner+=`<text x="${sx}" y="${sy+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#aaa'}" font-size="${isHero?10:9}" font-weight="700">${label}</text>`;
+    if(stack)inner+=`<text x="${sx}" y="${sy+(isHero?38:33)}" text-anchor="middle" fill="#86efac" font-size="9" font-family="monospace">${stack}</text>`;
   });
 
-  // Draw non-hero seats first, hero last (so cards render on top)
-  [...seats_data].sort((a,b)=>a.isHero?1:-1).forEach(({sx,sy,label,isHero,isBtn,stack})=>{
-    inner+=`<circle cx="${sx}" cy="${sy}" r="${isHero?HERO_R:22}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#2a2a2a'}" stroke-width="${isHero?2.5:1.5}"/>`;
-    if(isBtn)inner+=`<circle cx="${sx+21}" cy="${sy-21}" r="10" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/><text x="${sx+21}" y="${sy-17}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="800">D</text>`;
-    if(isHero)inner+=`<text x="${sx}" y="${sy-17}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
-    inner+=`<text x="${sx}" y="${sy+5}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#aaa'}" font-size="${isHero?10:9}" font-weight="700">${label}</text>`;
-    if(stack)inner+=`<text x="${sx}" y="${sy+(isHero?44:37)}" text-anchor="middle" fill="#86efac" font-size="9" font-family="monospace">${stack}</text>`;
+  const tableSVG=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${inner}</svg>`;
 
-    // Hero cards: large, to the LEFT of the seat circle
-    if(isHero&&holeCards.length>0){
-      const cw=isPLO?30:42,ch=isPLO?43:60,gap=5;
-      const totalW=holeCards.length*cw+(holeCards.length-1)*gap;
-      // Right edge of card group sits 6px left of the circle's left edge
-      const rightEdge=sx-HERO_R-6;
-      const hcX=rightEdge-totalW;
-      // Vertically center on the seat circle
-      const hcY=sy-ch/2;
-      holeCards.forEach((c,ci)=>{
-        inner+=cardSVG(c.rank,c.suit,hcX+ci*(cw+gap),hcY,cw,ch);
-      });
-    }
-  });
+  // Hero card tray — HTML below table, always fully visible
+  let trayHTML='';
+  if(holeCards.length>0){
+    const cw=isPLO?60:72,ch=isPLO?86:103;
+    const cards=holeCards.map(c=>{
+      const isRed=c.suit==='h'||c.suit==='d';
+      const col=isRed?'#dc2626':'#1e293b';
+      const sym=SYM[c.suit]||c.suit;
+      const rs=isPLO?13:16,fs=isPLO?22:28;
+      return `<div style="width:${cw}px;height:${ch}px;border-radius:9px;background:#fff;border:2px solid #cbd5e1;position:relative;box-shadow:0 3px 10px rgba(0,0,0,0.6);flex-shrink:0">
+        <span style="position:absolute;top:4px;left:5px;font-size:${rs}px;font-weight:900;color:${col};font-family:Georgia,serif;line-height:1">${c.rank}</span>
+        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:${fs}px;color:${col};line-height:1">${sym}</span>
+        <span style="position:absolute;bottom:4px;right:5px;font-size:${rs}px;font-weight:900;color:${col};font-family:Georgia,serif;line-height:1;transform:rotate(180deg)">${c.rank}</span>
+      </div>`;
+    }).join('');
+    trayHTML=`<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;background:#050505;border-top:1px solid #1a9a9a44">
+      <span style="font-size:10px;font-weight:700;color:#1a9a9a;text-transform:uppercase;letter-spacing:1.2px;margin-right:6px">Your Hand</span>
+      ${cards}
+    </div>`;
+  }
 
-  return `<div style="max-width:660px;margin:0 auto"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">${inner}</svg></div>`;
+  return `<div style="border-radius:14px;overflow:hidden;border:1px solid #1a1a1a;margin-bottom:12px">${tableSVG}${trayHTML}</div>`;
 }
 
 // ── Render quiz ────────────────────────────────────────
@@ -650,7 +482,9 @@ function renderQuiz(){
   if(q.rangeNote){const isIn=q.rangeNote.includes('✓');html+=`<span style="font-size:10px;padding:3px 8px;border-radius:8px;background:${isIn?'rgba(74,222,128,0.08)':'rgba(255,255,255,0.04)'};color:${isIn?'#4ade80':'#888'};border:1px solid ${isIn?'#4ade8033':'#222'};font-weight:600">${q.rangeNote}</span>`;}
   html+=`</div>`;
   if(q.actionLabel)html+=`<div style="font-size:11px;color:#1a9a9a;font-weight:600;margin-bottom:10px;padding:4px 10px;background:rgba(26,154,154,0.06);border-radius:6px;border:1px solid #1a9a9a22;display:inline-block">${q.actionLabel}</div>`;
-  html+=`<div style="background:#0a0a0a;border-radius:12px;border:1px solid #111;padding:10px 4px 4px;margin-bottom:12px">${tableHTML(q)}</div>`;
+
+  html+=tableHTML(q);
+
   html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">`;
   [{l:'Street',v:q.street,c:'#1a9a9a'},{l:'Pos',v:q.heroPosition||'—',c:'#fff'},{l:'Pot',v:q.potDisplay||'—',c:'#facc15'},{l:'Blinds',v:q.blinds||'1/2',c:'#4ade80'}].forEach(s=>{
     html+=`<div style="flex:1;min-width:60px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a"><div style="font-size:9px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px">${s.l}</div><div style="font-size:13px;font-weight:700;color:${s.c}">${s.v}</div></div>`;
@@ -741,7 +575,7 @@ async function analyzeHand(){
   const txt=(document.getElementById('hand-txt')?.value||'').trim();if(!txt)return;
   const res=document.getElementById('hand-result');if(res)res.innerHTML='<div style="color:#444;font-size:13px;margin-bottom:10px">Analyzing...</div>';
   try{
-    const sys=`Expert GTO poker coach (NLH and PLO). Grade each street A/B/C/D. Respond ONLY valid JSON: {"summary":"","heroCards":"","gameContext":"","result":"","overallGrade":"A","gradeSummary":"","streets":[{"street":"Preflop","action":"","grade":"A","verdict":"Good","analysis":"","alternative":null}],"keyMistakes":[],"wellPlayed":[],"studyTip":""}`;
+    const sys=`Expert GTO poker coach. Grade each street A/B/C/D. Respond ONLY valid JSON: {"summary":"","heroCards":"","gameContext":"","result":"","overallGrade":"A","gradeSummary":"","streets":[{"street":"Preflop","action":"","grade":"A","verdict":"Good","analysis":"","alternative":null}],"keyMistakes":[],"wellPlayed":[],"studyTip":""}`;
     const t=await callClaude(sys,'Analyze:\n\n'+txt,1500);
     const r=JSON.parse(t.replace(/```json|```/g,'').trim());
     const gc={A:'#4ade80',B:'#86efac',C:'#facc15',D:'#f87171'};const vc={Good:'#4ade80',Okay:'#facc15',Mistake:'#f87171'};
@@ -753,10 +587,7 @@ async function analyzeHand(){
   }catch(e){if(res)res.innerHTML=`<div style="color:#f87171;font-size:13px;margin-bottom:10px">Failed: ${e.message}</div>`;}
 }
 function renderEquityCalc(){
-  return `<div style="display:flex;flex-direction:column;gap:12px"><div style="background:rgba(26,154,154,0.06);border-radius:8px;padding:8px 10px;border:1px solid #1a9a9a22;font-size:11px;color:#555">NLH (2 cards) or PLO (4 cards). E.g. <span style="color:#1a9a9a">Ah Kd Qs Jc</span> for PLO.</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:11px;color:#444;margin-bottom:4px">Hand 1</div><input class="inp" id="eq-h1" value="Ah Kd"/></div><div><div style="font-size:11px;color:#444;margin-bottom:4px">Hand 2</div><input class="inp" id="eq-h2" value="Qh Qc"/></div></div>
-    <div><div style="font-size:11px;color:#444;margin-bottom:4px">Board (optional)</div><input class="inp" id="eq-board" placeholder="Kc 7h 2d"/></div>
-    <button class="btn" onclick="calcEquity()">Calculate Equity</button><div id="eq-result"></div></div>`;
+  return `<div style="display:flex;flex-direction:column;gap:12px"><div style="background:rgba(26,154,154,0.06);border-radius:8px;padding:8px 10px;border:1px solid #1a9a9a22;font-size:11px;color:#555">NLH (2 cards) or PLO (4 cards). E.g. <span style="color:#1a9a9a">Ah Kd Qs Jc</span> for PLO.</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><div style="font-size:11px;color:#444;margin-bottom:4px">Hand 1</div><input class="inp" id="eq-h1" value="Ah Kd"/></div><div><div style="font-size:11px;color:#444;margin-bottom:4px">Hand 2</div><input class="inp" id="eq-h2" value="Qh Qc"/></div></div><div><div style="font-size:11px;color:#444;margin-bottom:4px">Board (optional)</div><input class="inp" id="eq-board" placeholder="Kc 7h 2d"/></div><button class="btn" onclick="calcEquity()">Calculate Equity</button><div id="eq-result"></div></div>`;
 }
 async function calcEquity(){
   const h1=document.getElementById('eq-h1')?.value||'',h2=document.getElementById('eq-h2')?.value||'',board=document.getElementById('eq-board')?.value||'';
@@ -779,11 +610,7 @@ function renderBankroll(){
   const wins=sessions.filter(s=>s.profit>0).length;
   let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">`;
   [{l:'Profit',v:(total>=0?'+':'')+total.toFixed(2),c:total>=0?'#4ade80':'#f87171'},{l:'Sessions',v:sessions.length,c:'#1a9a9a'},{l:'Win Rate',v:sessions.length?Math.round((wins/sessions.length)*100)+'%':'—',c:'#facc15'}].forEach(s=>{html+=`<div style="background:#111;border-radius:10px;padding:10px;border:1px solid #1a1a1a"><div style="font-size:10px;color:#333;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">${s.l}</div><div style="font-size:16px;font-weight:700;color:${s.c}">${s.v}</div></div>`;});
-  html+=`</div><div style="background:#111;border-radius:12px;padding:12px;border:1px solid #1a1a1a;margin-bottom:12px"><div style="font-size:10px;color:#333;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Log Session</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><div><div style="font-size:10px;color:#333;margin-bottom:3px">Date</div><input type="date" id="br-date" value="${new Date().toISOString().slice(0,10)}" class="inp"/></div><div><div style="font-size:10px;color:#333;margin-bottom:3px">Game</div><input id="br-game" placeholder="1/2 NL" class="inp"/></div><div><div style="font-size:10px;color:#333;margin-bottom:3px">Buy-in</div><input type="number" id="br-buyin" placeholder="200" class="inp"/></div><div><div style="font-size:10px;color:#333;margin-bottom:3px">Cash-out</div><input type="number" id="br-cashout" placeholder="350" class="inp"/></div></div>
-    <input id="br-notes" placeholder="Notes..." class="inp" style="margin-bottom:8px"/>
-    <button class="btn" onclick="addSession()">Add Session</button></div>
-  <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">`;
+  html+=`</div><div style="background:#111;border-radius:12px;padding:12px;border:1px solid #1a1a1a;margin-bottom:12px"><div style="font-size:10px;color:#333;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Log Session</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><div><div style="font-size:10px;color:#333;margin-bottom:3px">Date</div><input type="date" id="br-date" value="${new Date().toISOString().slice(0,10)}" class="inp"/></div><div><div style="font-size:10px;color:#333;margin-bottom:3px">Game</div><input id="br-game" placeholder="1/2 NL" class="inp"/></div><div><div style="font-size:10px;color:#333;margin-bottom:3px">Buy-in</div><input type="number" id="br-buyin" placeholder="200" class="inp"/></div><div><div style="font-size:10px;color:#333;margin-bottom:3px">Cash-out</div><input type="number" id="br-cashout" placeholder="350" class="inp"/></div></div><input id="br-notes" placeholder="Notes..." class="inp" style="margin-bottom:8px"/><button class="btn" onclick="addSession()">Add Session</button></div><div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto">`;
   [...sessions].reverse().forEach(s=>{html+=`<div style="display:flex;align-items:center;gap:8px;background:#111;border-radius:8px;padding:8px 10px;border:1px solid #1a1a1a"><div style="flex:1"><div style="font-size:12px;color:#fff;font-weight:600">${s.date}${s.game?' · '+s.game:''}</div>${s.notes?`<div style="font-size:11px;color:#333">${s.notes}</div>`:''}</div><div style="font-size:13px;font-weight:700;color:${s.profit>=0?'#4ade80':'#f87171'}">${s.profit>=0?'+':''}${s.profit.toFixed(2)}</div></div>`;});
   if(!sessions.length)html+=`<div style="font-size:12px;color:#222;text-align:center;padding:20px">No sessions yet.</div>`;
   html+=`</div>`;return html;

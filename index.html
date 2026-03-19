@@ -492,50 +492,77 @@ function cardHTML(rank,suit,size) {
 function tableHTML(quiz) {
   const cx=300, cy=150, rx=220, ry=110;
   const seats = quiz.numSeats || 8;
-
-  // Physical seats are fixed clockwise starting at bottom-center (seat 0 = bottom)
-  // Position labels rotate — the AI tells us heroPosition and allPositions
-  // allPositions[i] = the position label for physical seat i
   const posLabels = quiz.allPositions || POS8.slice(0, seats);
   const heroPos   = quiz.heroPosition || '';
   const stackSizes = quiz.stackSizes || [];
-
-  // Proper clockwise position order for display verification
-  // Seats are numbered 0..n-1 clockwise from bottom
-  // seat 0 = bottom-center, seat 1 = bottom-right, etc.
 
   let inner = `<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+12}" ry="${ry+12}" fill="#1a4a2e"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx-4}" ry="${ry-4}" fill="#2d7a4a"/>`;
 
-  if (quiz.potDisplay && quiz.potDisplay !== '$0') {
+  // Community cards in center — always show if we have them
+  const cc = quiz.communityCards || [];
+  if (cc.length > 0) {
+    const cardW=28, cardH=40, gap=4;
+    const totalW = cc.length * cardW + (cc.length-1) * gap;
+    const startX = cx - totalW/2;
+    cc.forEach((c, i) => {
+      const cxc = startX + i*(cardW+gap);
+      const isRed = c.suit==='h'||c.suit==='d';
+      const sym = {s:'♠',h:'♥',d:'♦',c:'♣'}[c.suit]||c.suit;
+      inner += `<rect x="${cxc}" y="${cy-20}" width="${cardW}" height="${cardH}" rx="3" fill="white"/>
+        <text x="${cxc+4}" y="${cy-7}" font-size="9" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif">${c.rank}</text>
+        <text x="${cxc+14}" y="${cy+4}" font-size="12" text-anchor="middle" fill="${isRed?'#dc2626':'#1e293b'}">${sym}</text>
+        <text x="${cxc+24}" y="${cy+17}" font-size="9" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif" transform="rotate(180,${cxc+24},${cy+17})">${c.rank}</text>`;
+    });
+  } else if (quiz.potDisplay && quiz.potDisplay !== '$0') {
+    // Only show pot if no community cards
     inner += `<rect x="${cx-46}" y="${cy-16}" width="92" height="32" rx="8" fill="rgba(0,0,0,0.35)"/>
       <text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="600" font-family="monospace">POT</text>
       <text x="${cx}" y="${cy+13}" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="700" font-family="monospace">${quiz.potDisplay}</text>`;
   }
 
+  // Show pot above community cards when cards are present
+  if (cc.length > 0 && quiz.potDisplay && quiz.potDisplay !== '$0') {
+    inner += `<text x="${cx}" y="${cy-30}" text-anchor="middle" fill="#fcd34d" font-size="10" font-weight="700" font-family="monospace">POT ${quiz.potDisplay}</text>`;
+  }
+
+  // Draw seats
   for (let i = 0; i < seats; i++) {
-    // Seat positions: start at bottom (π/2 = 6 o'clock), go clockwise
-    // i=0 → bottom, i=1 → bottom-right, etc.
     const a = (2 * Math.PI * i / seats) + Math.PI / 2;
     const x = Math.round(cx + (rx+28) * Math.cos(a));
     const y = Math.round(cy + (ry+38) * Math.sin(a));
+    const label  = posLabels[i] || '';
+    const stack  = stackSizes[i] || '';
+    const isHero = label === heroPos;
+    const isBtn  = label === 'BTN';
 
-    const label   = posLabels[i] || '';
-    const stack   = stackSizes[i] || '';
-    const isHero  = label === heroPos;
-    const isBtn   = label === 'BTN';
-
-    inner += `<circle cx="${x}" cy="${y}" r="${isHero?26:20}"
+    inner += `<circle cx="${x}" cy="${y}" r="${isHero?28:20}"
       fill="${isHero?'#0d2a1a':'#0a0a0a'}"
       stroke="${isHero?'#1a9a9a':'#333'}"
       stroke-width="${isHero?2:1.5}"/>`;
 
-    // D chip always on BTN seat, wherever BTN is this hand
     if (isBtn) {
       inner += `<circle cx="${x+18}" cy="${y-18}" r="9" fill="#fbbf24" stroke="#92400e" stroke-width="1.5"/>
         <text x="${x+18}" y="${y-14}" text-anchor="middle" fill="#1c1917" font-size="9" font-weight="700">D</text>`;
+    }
+
+    // Hero hole cards rendered AT the seat position
+    if (isHero && quiz.holeCards?.length) {
+      const hc = quiz.holeCards;
+      const cw = 16, ch = 22, cgap = 3;
+      const totalCW = hc.length * cw + (hc.length-1) * cgap;
+      const hcStartX = x - totalCW/2;
+      const hcY = y + 32;
+      hc.forEach((c, ci) => {
+        const hx = hcStartX + ci*(cw+cgap);
+        const isRed = c.suit==='h'||c.suit==='d';
+        const sym = {s:'♠',h:'♥',d:'♦',c:'♣'}[c.suit]||c.suit;
+        inner += `<rect x="${hx}" y="${hcY}" width="${cw}" height="${ch}" rx="2" fill="white" stroke="#94a3b8" stroke-width="0.5"/>
+          <text x="${hx+2}" y="${hcY+8}" font-size="6" font-weight="800" fill="${isRed?'#dc2626':'#1e293b'}" font-family="Georgia,serif">${c.rank}</text>
+          <text x="${hx+cw/2}" y="${hcY+16}" font-size="8" text-anchor="middle" fill="${isRed?'#dc2626':'#1e293b'}">${sym}</text>`;
+      });
     }
 
     inner += `<text x="${x}" y="${y+4}" text-anchor="middle"
@@ -543,18 +570,18 @@ function tableHTML(quiz) {
       font-size="${isHero?9:8}" font-weight="600">${label}</text>`;
 
     if (stack) {
-      inner += `<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle"
-        fill="#86efac" font-size="8" font-family="monospace">${stack}</text>`;
+      inner += `<text x="${x}" y="${y+(isHero?18:28)}" text-anchor="middle"
+        fill="#86efac" font-size="7" font-family="monospace">${stack}</text>`;
     }
 
     if (isHero) {
-      inner += `<text x="${x}" y="${y+52}" text-anchor="middle"
-        fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
+      inner += `<text x="${x}" y="${y-16}" text-anchor="middle"
+        fill="#1a9a9a" font-size="7" font-weight="700">YOU</text>`;
     }
   }
 
   return `<div style="max-width:600px;margin:0 auto">
-    <svg viewBox="0 0 600 300" style="width:100%;overflow:visible">${inner}</svg>
+    <svg viewBox="0 0 600 320" style="width:100%;overflow:visible">${inner}</svg>
   </div>`;
 }
 
@@ -585,11 +612,7 @@ function renderQuiz() {
   html+=`</div>`;
 
   html+=`<div style="background:#0a0a0a;border-radius:12px;border:1px solid #111;padding:12px 6px 6px;margin-bottom:12px">${tableHTML(q)}`;
-  if(q.holeCards?.length) {
-    html+=`<div style="display:flex;justify-content:center;gap:8px;margin-top:-10px;padding-bottom:4px">`;
-    q.holeCards.forEach(c=>{ html+=cardHTML(c.rank,c.suit,1.15); });
-    html+=`</div>`;
-  }
+  // No hole cards below table — they're rendered at the hero seat
   html+=`</div>`;
 
   html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">`;

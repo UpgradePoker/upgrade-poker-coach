@@ -483,8 +483,15 @@ function cardHTML(rank,suit,size) {
 }
 
 function tableHTML(quiz) {
-  const seats=quiz.numSeats||8,cx=300,cy=150,rx=220,ry=110,hero=seats-1;
+  const seats=quiz.numSeats||8,cx=300,cy=150,rx=220,ry=110;
   const pos=quiz.allPositions||POS8.slice(0,seats);
+
+  // Hero seat = whichever seat index matches heroPosition
+  const heroSeat = pos.indexOf(quiz.heroPosition);
+
+  // Dealer button always sits on BTN seat
+  const btnSeat = pos.indexOf('BTN');
+
   let inner=`<ellipse cx="${cx}" cy="${cy+8}" rx="${rx+10}" ry="${ry+10}" fill="rgba(0,0,0,0.35)"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+12}" ry="${ry+12}" fill="#1a4a2e"/>
     <ellipse cx="${cx}" cy="${cy}" rx="${rx+6}" ry="${ry+6}" fill="#1e5c38"/>
@@ -497,9 +504,14 @@ function tableHTML(quiz) {
   for(let i=0;i<seats;i++) {
     const a=(2*Math.PI*i/seats)-Math.PI/2;
     const x=Math.round(cx+(rx+28)*Math.cos(a)),y=Math.round(cy+(ry+38)*Math.sin(a));
-    const isHero=i===hero,isDealer=quiz.dealerSeat===i;
+    const isHero=i===heroSeat;
+    const isBtn=i===btnSeat;
+
     inner+=`<circle cx="${x}" cy="${y}" r="${isHero?26:20}" fill="${isHero?'#0d2a1a':'#0a0a0a'}" stroke="${isHero?'#1a9a9a':'#333'}" stroke-width="${isHero?2:1.5}"/>`;
-    if(isDealer) inner+=`<circle cx="${x+16}" cy="${y-16}" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1"/><text x="${x+16}" y="${y-12}" text-anchor="middle" fill="#1c1917" font-size="8" font-weight="700">D</text>`;
+
+    // Dealer button always on BTN seat
+    if(isBtn) inner+=`<circle cx="${x+16}" cy="${y-16}" r="8" fill="#fbbf24" stroke="#92400e" stroke-width="1"/><text x="${x+16}" y="${y-12}" text-anchor="middle" fill="#1c1917" font-size="8" font-weight="700">D</text>`;
+
     inner+=`<text x="${x}" y="${y+4}" text-anchor="middle" fill="${isHero?'#1a9a9a':'#888'}" font-size="${isHero?9:8}" font-weight="600">${pos[i]||''}</text>`;
     if(quiz.stackSizes?.[i]) inner+=`<text x="${x}" y="${y+(isHero?40:34)}" text-anchor="middle" fill="#86efac" font-size="8" font-family="monospace">${quiz.stackSizes[i]}</text>`;
     if(isHero) inner+=`<text x="${x}" y="${y+52}" text-anchor="middle" fill="#1a9a9a" font-size="8" font-weight="700">YOU</text>`;
